@@ -1,4 +1,4 @@
-import 'package:eko_messanger/utils/client.dart';
+import 'package:ecp/ecp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,9 +10,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _serverController = TextEditingController(
-    text: "http://localhost:3000/",
-  );
+  final _serverController = TextEditingController(text: ecp.baseUrl.toString());
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 

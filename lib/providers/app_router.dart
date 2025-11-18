@@ -1,15 +1,37 @@
+import 'dart:async';
+
+import 'package:ecp/ecp.dart';
 import 'package:eko_messanger/screens/home_screen.dart';
 import 'package:eko_messanger/screens/login_screen.dart';
-import 'package:eko_messanger/utils/client.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final authStateProvider = StreamProvider<bool>((ref) {
-  // might not need this
-  ecp.initialize();
-  return ecp.authStream;
-});
+class AuthNotifier extends StateNotifier<AsyncValue<bool>> {
+  late final StreamSubscription _authSubscription;
+  AuthNotifier() : super(AsyncValue.data(ecp.isAuthenticated)) {
+    _authSubscription = ecp.authStream.listen(
+      (isLoggedIn) {
+        state = AsyncValue.data(isLoggedIn);
+      },
+      onError: (error, stackTrace) {
+        state = AsyncValue.error(error, stackTrace);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    super.dispose();
+  }
+}
+
+final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<bool>>(
+  (ref) {
+    return AuthNotifier();
+  },
+);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);

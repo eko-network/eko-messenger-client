@@ -29,11 +29,18 @@
         systemImageTypes = ["google_apis"];
       };
       androidSdk = androidComposition.androidsdk;
+
+      cmakeToolchain = pkgs.writeText "nix-toolchain.cmake" ''
+        set(OPENSSL_SSL_LIBRARY "${pkgs.openssl.out}/lib/libssl.so" CACHE FILEPATH "OpenSSL SSL library" FORCE)
+        set(CMAKE_PREFIX_PATH "${pkgs.openssl.out};${pkgs.openssl.dev};''${CMAKE_PREFIX_PATH}" CACHE STRING "CMake prefix path" FORCE)
+        set(OPENSSL_CRYPTO_LIBRARY "${pkgs.openssl.out}/lib/libcrypto.so" CACHE FILEPATH "OpenSSL crypto library" FORCE)
+      '';
     in {
       devShell = with pkgs;
         mkShell rec {
           ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
           ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
+
           nativeBuildInputs = [
             dart
             flutter
@@ -47,7 +54,13 @@
             cmake
             clang
             gtk3
+            openssl.dev
+            openssl.out
           ];
+
+          shellHook = ''
+            export CMAKE_TOOLCHAIN_FILE="${cmakeToolchain}"
+          '';
         };
     });
 }

@@ -1,5 +1,5 @@
+import 'package:ecp/ecp.dart';
 import 'package:eko_messanger/providers/app_router.dart';
-import 'package:eko_messanger/utils/client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
