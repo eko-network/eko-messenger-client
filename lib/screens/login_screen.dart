@@ -1,6 +1,7 @@
 import 'package:ecp/ecp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:eko_messanger/utils/constants.dart' as c;
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -10,7 +11,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _serverController = TextEditingController(text: ecp.baseUrl.toString());
+  final _serverController = TextEditingController(
+    text: c.defaultUrl.toString(),
+  );
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -41,12 +44,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ElevatedButton(
                 onPressed: () async {
                   final uri = Uri.tryParse(_serverController.text);
-                  if (uri?.hasScheme ?? false) {
-                    ecp.setBaseUrl(uri!);
+
+                  if (uri == null || !uri.hasScheme) {
+                    return;
                   }
                   await ecp.login(
                     email: _emailController.text,
                     password: _passwordController.text,
+                    url: uri,
                   );
                 },
                 child: const Text('Login'),

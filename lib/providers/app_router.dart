@@ -6,10 +6,15 @@ import 'package:eko_messanger/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+part 'app_router.g.dart';
 
-class AuthNotifier extends StateNotifier<AsyncValue<bool>> {
+@riverpod
+class AuthState extends _$AuthState {
   late final StreamSubscription _authSubscription;
-  AuthNotifier() : super(AsyncValue.data(ecp.isAuthenticated)) {
+
+  @override
+  AsyncValue<bool> build() {
     _authSubscription = ecp.authStream.listen(
       (isLoggedIn) {
         state = AsyncValue.data(isLoggedIn);
@@ -18,20 +23,12 @@ class AuthNotifier extends StateNotifier<AsyncValue<bool>> {
         state = AsyncValue.error(error, stackTrace);
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _authSubscription.cancel();
-    super.dispose();
+    ref.onDispose(() {
+      _authSubscription.cancel();
+    });
+    return AsyncValue.data(ecp.isAuthenticated);
   }
 }
-
-final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<bool>>(
-  (ref) {
-    return AuthNotifier();
-  },
-);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -47,7 +44,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      final isLoggedIn = authState.valueOrNull ?? false;
+      final isLoggedIn = authState.value ?? false;
 
       if (onLoginPage) {
         if (isLoggedIn) {

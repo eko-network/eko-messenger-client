@@ -9,8 +9,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ECPClient.initialize(
     storage: DriftStorage(AppDatabase()),
-    baseUrl: Uri.parse("http://localhost:3000/"),
     deviceName: "test-device",
+    deviceId: "123",
   );
 
   runApp(const ProviderScope(child: MyApp()));
