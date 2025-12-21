@@ -3,78 +3,47 @@ import 'dart:io';
 import 'dart:math';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:ecp/ecp.dart';
+import 'package:eko_messanger/database/daos/contacts_dao.dart';
+import 'package:eko_messanger/database/daos/conversations_dao.dart';
+import 'package:eko_messanger/database/tables/contacts.dart';
+import 'package:eko_messanger/database/tables/conversations.dart';
+import 'package:eko_messanger/database/type_converters.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
+// import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
+import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
+import 'package:uuid/uuid_value.dart';
 
-part 'database.g.dart';
+// Import table definitions
+import 'tables/auth.dart';
+import 'tables/ecp.dart';
+import 'tables/messages.dart';
 
-@DataClassName('AuthSession')
-class AuthSessions extends Table {
-  IntColumn get id => integer().withDefault(const Constant(1))();
-  TextColumn get accessToken => text()();
-  TextColumn get refreshToken => text()();
-  TextColumn get serverUrl => text()();
-  DateTimeColumn get expiresAt => dateTime()();
+// Import DAOs
+import 'daos/messages_dao.dart';
 
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class Sessions extends Table {
-  TextColumn get name => text()();
-  IntColumn get deviceId => integer()();
-  BlobColumn get record => blob()();
-
-  @override
-  Set<Column> get primaryKey => {deviceId};
-}
-
-class PreKeys extends Table {
-  IntColumn get keyId => integer()();
-  BlobColumn get record => blob()();
-
-  @override
-  Set<Column> get primaryKey => {keyId};
-}
-
-class SignedPreKeys extends Table {
-  IntColumn get id => integer()();
-  BlobColumn get record => blob()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class Identities extends Table {
-  TextColumn get name => text()();
-  IntColumn get deviceId => integer()();
-  BlobColumn get identityKey => blob()();
-  BoolColumn get trusted => boolean().withDefault(const Constant(true))();
-
-  @override
-  Set<Column> get primaryKey => {deviceId};
-}
-
-class LocalIdentity extends Table {
-  IntColumn get id => integer().withDefault(const Constant(1))();
-  BlobColumn get identityKeyPair => blob()();
-  IntColumn get registrationId => integer()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
+part '../generated/database/database.g.dart';
 
 @DriftDatabase(
   tables: [
-    AuthSessions,
+    // ECP
     Sessions,
     PreKeys,
     SignedPreKeys,
     Identities,
     LocalIdentity,
+    // Auth
+    Users,
+    UserDevices,
+    // Other
+    Messages,
+    Contacts,
+    Conversations,
   ],
+  daos: [MessagesDao, ContactsDao, ConversationsDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -120,10 +89,16 @@ Future<String> _getDbPassword() async {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
+    // Load SQLCipher for Android
+    await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
+
     final password = await _getDbPassword();
     final dbFolder = await getApplicationSupportDirectory();
     final file = File(p.join(dbFolder.path, 'eko.db'));
-    final rawDb = sqlite3.open(file.path);
+
+    // Open with SQLCipher
+    final rawDb = sqlite3.open(file.path, uri: false);
+
     final result = rawDb.select('PRAGMA cipher_version;');
     if (result.isEmpty) {
       throw StateError('SQLCipher library is not available!');

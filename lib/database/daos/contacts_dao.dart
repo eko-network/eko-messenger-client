@@ -1,0 +1,28 @@
+import 'package:drift/drift.dart';
+import 'package:ecp/ecp.dart';
+import 'package:eko_messanger/database/tables/contacts.dart';
+
+import '../database.dart';
+
+part '../../generated/database/daos/contacts_dao.g.dart';
+
+@DriftAccessor(tables: [Contacts])
+class ContactsDao extends DatabaseAccessor<AppDatabase>
+    with _$ContactsDaoMixin {
+  ContactsDao(super.db);
+
+  Future<void> insertNewContact(Person contact) async {
+    final companion = ContactsCompanion(
+      id: Value(contact.id),
+      preferredUsername: Value(contact.preferredUsername),
+      inbox: Value(contact.inbox),
+      outbox: Value(contact.outbox),
+      keyBundle: Value(contact.keyBundle),
+    );
+    await into(contacts).insert(companion);
+  }
+
+  Future<List<Person>> getContacts() async {
+    return select(contacts).get();
+  }
+}

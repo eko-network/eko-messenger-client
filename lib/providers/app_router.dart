@@ -1,50 +1,22 @@
-import 'dart:async';
-
-import 'package:ecp/ecp.dart';
-import 'package:eko_messanger/screens/home_screen.dart';
+import 'package:eko_messanger/providers/auth.dart';
+import 'package:eko_messanger/screens/chat/adaptive_chat_layout.dart';
 import 'package:eko_messanger/screens/login_screen.dart';
+import 'package:eko_messanger/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-part 'app_router.g.dart';
+part '../generated/providers/app_router.g.dart';
 
 @riverpod
-class AuthState extends _$AuthState {
-  late final StreamSubscription _authSubscription;
+GoRouter router(Ref ref) {
+  final authNotifier = ref.watch(authProvider);
 
-  @override
-  AsyncValue<bool> build() {
-    _authSubscription = ecp.authStream.listen(
-      (isLoggedIn) {
-        state = AsyncValue.data(isLoggedIn);
-      },
-      onError: (error, stackTrace) {
-        state = AsyncValue.error(error, stackTrace);
-      },
-    );
-    ref.onDispose(() {
-      _authSubscription.cancel();
-    });
-    return AsyncValue.data(ecp.isAuthenticated);
-  }
-}
-
-final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: authNotifier, // Will rebuild on auth change
     redirect: (BuildContext context, GoRouterState state) {
       final onLoginPage = state.matchedLocation == '/login';
-      if (authState.isLoading) {
-        return null;
-      }
-
-      if (authState.hasError) {
-        return '/login';
-      }
-
-      final isLoggedIn = authState.value ?? false;
+      final isLoggedIn = authNotifier.isAuthenticated;
 
       if (onLoginPage) {
         if (isLoggedIn) {
@@ -60,7 +32,15 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-      GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/', builder: (context, state) => AdaptiveChat()),
+      GoRoute(path: '/settings', builder: (context, state) => const Settings()),
+      GoRoute(
+        path: '/chats/:id',
+        builder: (context, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return AdaptiveChat(selectedConversationId: id);
+        },
+      ),
     ],
   );
-});
+}
