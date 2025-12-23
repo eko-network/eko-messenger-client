@@ -24,7 +24,6 @@ class ChatView extends ConsumerStatefulWidget {
 
 class _ChatViewState extends ConsumerState<ChatView> {
   final TextEditingController _messageController = TextEditingController();
-  final _uuid = const Uuid();
 
   @override
   void dispose() {

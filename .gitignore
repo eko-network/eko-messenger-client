@@ -1,5 +1,8 @@
 .env
+android/build/
 .direnv/
+firebase.json
+android/app/google-services.json
 # Miscellaneous
 *.class
 *.log
