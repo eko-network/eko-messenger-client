@@ -26,6 +26,12 @@ class ConversationsDao extends DatabaseAccessor<AppDatabase>
     return into(conversations).insert(conversation);
   }
 
+  Future<Conversation?> getConversationByParticipant(Uri participant) {
+    return (select(conversations)
+          ..where((c) => c.participant.equals(participant.toString())))
+        .getSingleOrNull();
+  }
+
   Future<List<ConversationWithContact>> getConversationsWithContact() {
     return (select(conversations)
           ..orderBy(

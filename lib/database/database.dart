@@ -9,6 +9,7 @@ import 'package:eko_messanger/database/daos/conversations_dao.dart';
 import 'package:eko_messanger/database/tables/contacts.dart';
 import 'package:eko_messanger/database/tables/conversations.dart';
 import 'package:eko_messanger/database/type_converters.dart';
+import 'package:eko_messanger/utils/constants.dart' as c;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -38,6 +39,7 @@ part '../generated/database/database.g.dart';
     // Auth
     Users,
     UserDevices,
+    AuthInfoTable,
     // Other
     Messages,
     Contacts,
@@ -49,7 +51,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -57,7 +59,12 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (Migrator m) async {
         await m.createAll();
       },
-      onUpgrade: (Migrator m, int from, int to) async {},
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // Add AuthInfoTable in version 2
+          await m.createTable(authInfoTable);
+        }
+      },
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
       },
@@ -76,7 +83,7 @@ Uint8List _generateRandomBytes(int length) {
 
 Future<String> _getDbPassword() async {
   final FlutterSecureStorage storage = const FlutterSecureStorage();
-  final key = "eko-db-key";
+  final key = '${c.appInstanceId}_db_key';
   final stored = await storage.read(key: key);
   if (stored != null) {
     return stored;
@@ -94,7 +101,7 @@ LazyDatabase _openConnection() {
 
     final password = await _getDbPassword();
     final dbFolder = await getApplicationSupportDirectory();
-    final file = File(p.join(dbFolder.path, 'eko.db'));
+    final file = File(p.join(dbFolder.path, '${c.appInstanceId}.db'));
 
     // Open with SQLCipher
     final rawDb = sqlite3.open(file.path, uri: false);

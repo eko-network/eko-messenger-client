@@ -43,10 +43,11 @@ class AuthNotifier extends ChangeNotifier {
 @Riverpod(keepAlive: true)
 AuthNotifier auth(Ref ref) {
   final deviceName = ref.watch(deviceNameProvider);
+  final db = ref.read(appDatabaseProvider);
   return AuthNotifier(
     Auth(
-      SecureAuthStore(),
-      ecpStorage: DriftStorage(ref.read(appDatabaseProvider)),
+      SecureAuthStore(db),
+      ecpStorage: DriftStorage(db),
       deviceName: deviceName,
     ),
   );

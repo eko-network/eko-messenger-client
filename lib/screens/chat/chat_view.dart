@@ -24,7 +24,7 @@ class ChatView extends ConsumerStatefulWidget {
 
 class _ChatViewState extends ConsumerState<ChatView> {
   final TextEditingController _messageController = TextEditingController();
-
+  final _uuid = Uuid();
   @override
   void dispose() {
     _messageController.dispose();
@@ -38,7 +38,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
     final db = ref.read(appDatabaseProvider);
     final authInfo = ref.read(authProvider).info;
     if (authInfo == null) return;
-    final activity = Create.note(content: text);
+    final activity = Create(
+      base: ActivityBase(id: _uuid.v4obj()),
+      object: Note(
+        content: text,
+        base: ObjectBase(id: _uuid.v4obj()),
+      ),
+    );
 
     // Insert message to database with 'sending' status
     await db.messagesDao.insertNewMessage(
@@ -90,7 +96,12 @@ class _ChatViewState extends ConsumerState<ChatView> {
               ),
             ),
             const SizedBox(width: 12),
-            Text(widget.conversation.contact.preferredUsername),
+            Expanded(
+              child: Text(
+                widget.conversation.contact.preferredUsername,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         elevation: 0,
@@ -126,7 +137,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     final isReceived = message.from != authInfo.actor.id;
                     return _buildMessage(
                       // FIXME
-                      message.content!,
+                      message.content ?? "No content",
                       isReceived,
                       context,
                       message.status,

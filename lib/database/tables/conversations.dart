@@ -5,7 +5,7 @@ import 'package:eko_messanger/database/type_converters.dart';
 class Conversations extends Table {
   TextColumn get participant =>
       text().map(const UriTypeConverter()).references(Contacts, #id)();
-  IntColumn get id => integer().autoIncrement()();
+  IntColumn get id => integer()();
   @override
   Set<Column> get primaryKey => {id};
 }

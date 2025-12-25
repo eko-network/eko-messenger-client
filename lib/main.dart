@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:eko_messanger/providers/auth.dart';
 import 'package:eko_messanger/providers/device_name_provider.dart';
+import 'package:eko_messanger/providers/message_polling.dart';
 import 'package:eko_messanger/utils/device_name.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,6 +52,9 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize message polling
+    ref.watch(messagePollingProvider);
+
     final router = ref.watch(routerProvider);
     // return ShadApp.custom(
     //   themeMode: ThemeMode.dark,

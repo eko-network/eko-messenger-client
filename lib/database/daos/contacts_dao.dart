@@ -25,4 +25,9 @@ class ContactsDao extends DatabaseAccessor<AppDatabase>
   Future<List<Person>> getContacts() async {
     return select(contacts).get();
   }
+
+  Future<Person?> getContactById(Uri id) {
+    return (select(contacts)..where((c) => c.id.equals(id.toString())))
+        .getSingleOrNull();
+  }
 }
