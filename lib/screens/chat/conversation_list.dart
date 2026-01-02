@@ -4,6 +4,7 @@ import 'package:eko_messanger/database/daos/conversations_dao.dart';
 import 'package:eko_messanger/database/database.dart';
 import 'package:eko_messanger/providers/auth.dart';
 import 'package:eko_messanger/providers/database.dart';
+import 'package:eko_messanger/providers/ecp.dart';
 import 'package:eko_messanger/screens/chat/adaptive_chat_layout.dart';
 import 'package:eko_messanger/widgets/resizable_panel.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +74,50 @@ class _ConversationListState extends ConsumerState<ConversationList> {
     setState(() {
       newChatScreen = true;
     });
+  }
+
+  Future<void> onSearchGetPressed() async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+    try {
+      final person = await ref
+          .read(ecpProvider)!
+          .getActorWithWebfinger(newMessageController.text.trim());
+      final db = ref.read(appDatabaseProvider);
+      await db.contactsDao.insertNewContact(person);
+      final newConversationId = await db.conversationsDao.insertNewConversation(
+        ConversationsCompanion(participant: Value(person.id)),
+      );
+      newMessageController.clear();
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      context.go('/chats/$newConversationId');
+      return;
+    } catch (e) {
+      debugPrint(e.toString());
+      if (!mounted) return;
+      Navigator.of(context).pop(); // dismiss the loading
+      if (context.mounted) {
+        await showShadDialog(
+          context: context,
+          builder: (context) => ShadDialog.alert(
+            title: const Text('User not found'),
+            actions: [
+              ShadButton(
+                child: const Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -243,74 +288,7 @@ class _ConversationListState extends ConsumerState<ConversationList> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 onTap: () async {
-                                  showDialog<void>(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (context) => const PopScope(
-                                      canPop: false,
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    ),
-                                  );
-                                  // FIXME get from well known
-                                  await Future.delayed(
-                                    const Duration(seconds: 1),
-                                  );
-
-                                  try {
-                                    final db = ref.read(appDatabaseProvider);
-                                    final username = newMessageController.text;
-                                    final id =
-                                        '${ref.read(authProvider).info!.serverUrl}users/$username';
-                                    // FIXME placeholder
-                                    final newContact = Person(
-                                      id: Uri.parse(id),
-                                      inbox: Uri.parse('$id/inbox'),
-                                      outbox: Uri.parse('$id/outbox'),
-                                      keyBundle: Uri.parse(
-                                        '$id/keys/bundle.json',
-                                      ),
-                                      preferredUsername: username,
-                                    );
-                                    await db.contactsDao.insertNewContact(
-                                      newContact,
-                                    );
-                                    final newConversationId = await db
-                                        .conversationsDao
-                                        .insertNewConversation(
-                                          ConversationsCompanion(
-                                            participant: Value(Uri.parse(id)),
-                                          ),
-                                        );
-                                    if (!context.mounted) return;
-                                    Navigator.of(
-                                      context,
-                                    ).pop(); // dismiss the loading
-                                    context.go('/chats/$newConversationId');
-                                    return;
-                                  } catch (e) {
-                                    // user probably already exists
-                                  }
-                                  if (!context.mounted) return;
-                                  Navigator.of(
-                                    context,
-                                  ).pop(); // dismiss the loading
-                                  // if (context.mounted) {
-                                  //   await showShadDialog(
-                                  //     context: context,
-                                  //     builder: (context) => ShadDialog.alert(
-                                  //       title: const Text('User not found'),
-                                  //       actions: [
-                                  //         ShadButton(
-                                  //           child: const Text('OK'),
-                                  //           onPressed: () =>
-                                  //               Navigator.of(context).pop(),
-                                  //         ),
-                                  //       ],
-                                  //     ),
-                                  //   );
-                                  // }
+                                  await onSearchGetPressed();
                                 },
                               );
                       },

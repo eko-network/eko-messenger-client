@@ -26,12 +26,10 @@ class MessagePolling extends _$MessagePolling {
       }
     });
 
-    // Start immediately if already authenticated
     if (ref.read(authProvider).isAuthenticated) {
       _startPolling();
     }
 
-    // Clean up on provider disposal
     ref.onDispose(() {
       _stopPolling();
     });
@@ -62,7 +60,6 @@ class MessagePolling extends _$MessagePolling {
       }
 
       final db = ref.read(appDatabaseProvider);
-      // final ecp = ref.read(ecpProvider)!;
 
       for (final activity in response) {
         final from = activity.from;
@@ -70,13 +67,7 @@ class MessagePolling extends _$MessagePolling {
         var contact = await db.contactsDao.getContactById(from);
         if (contact == null) {
           try {
-            final person = Person(
-              id: from,
-              inbox: Uri.parse("$from/inbox"),
-              outbox: Uri.parse("$from/outbox"),
-              keyBundle: Uri.parse("$from/keyBundle.json"),
-              preferredUsername: from.toString(),
-            ); // await ecp.getRemoteActor(from);
+            final person = await ref.read(ecpProvider)!.getActor(from);
             await db.contactsDao.insertNewContact(person);
             contact = person;
           } catch (e) {
