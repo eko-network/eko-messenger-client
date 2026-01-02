@@ -26,11 +26,11 @@ class DriftStorage implements Storage {
   final UserStore userStore;
 
   DriftStorage(this._db)
-      : preKeyStore = DriftPreKeyStore(_db),
-        sessionStore = DriftSessionStore(_db),
-        signedPreKeyStore = DriftSignedPreKeyStore(_db),
-        identityKeyStore = DriftIdentityKeyStore(_db),
-        userStore = DriftUserStore(_db);
+    : preKeyStore = DriftPreKeyStore(_db),
+      sessionStore = DriftSessionStore(_db),
+      signedPreKeyStore = DriftSignedPreKeyStore(_db),
+      identityKeyStore = DriftIdentityKeyStore(_db),
+      userStore = DriftUserStore(_db);
 
   @override
   Future<void> clear() async {
@@ -38,7 +38,9 @@ class DriftStorage implements Storage {
     await _db.delete(_db.signedPreKeys).go();
     await _db.delete(_db.identities).go();
     await _db.delete(_db.localIdentity).go();
-    await _db.delete(_db.users).go();
+    await _db.delete(_db.sessions).go();
+    // Delete child table before parent table to avoid foreign key constraint
     await _db.delete(_db.userDevices).go();
+    await _db.delete(_db.users).go();
   }
 }

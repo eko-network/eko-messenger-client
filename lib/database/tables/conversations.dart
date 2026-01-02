@@ -3,8 +3,9 @@ import 'package:eko_messanger/database/tables/contacts.dart';
 import 'package:eko_messanger/database/type_converters.dart';
 
 class Conversations extends Table {
-  TextColumn get participant =>
-      text().map(const UriTypeConverter()).references(Contacts, #id)();
+  TextColumn get participant => text()
+      .map(const UriTypeConverter())
+      .references(Contacts, #id, onDelete: KeyAction.cascade)();
   IntColumn get id => integer()();
   @override
   Set<Column> get primaryKey => {id};

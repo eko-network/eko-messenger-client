@@ -19,10 +19,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool isLoading = false;
   bool obscure = true;
 
-  @override
-  Widget build(BuildContext context) {
+  Future<void> _handleLogin() async {
+    if (isLoading) return;
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      isLoading = true;
+    });
+
     final auth = ref.read(authProvider);
 
+    try {
+      await auth.login(
+        email: emailController.text,
+        password: passwordController.text,
+        url: Uri.parse(serverController.text),
+      );
+      // GoRouter.of(context).go('/home');
+    } catch (e) {
+      debugPrint('$e');
+      if (mounted) {
+        ShadToaster.of(context).show(
+          ShadToast(
+            title: Text('Uh oh! Something went wrong'),
+            description: Text('There was a problem with your request: $e'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: MaybeCard(
@@ -34,81 +68,74 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             alignment: Alignment.centerRight,
             child: ShadButton(
               enabled: !isLoading,
-              child: isLoading
-                  ? CircularProgressIndicator()
-                  : const Text('Login'),
-              onPressed: () async {
-                FocusManager.instance.primaryFocus?.unfocus();
-                setState(() {
-                  isLoading = true;
-                });
-                try {
-                  await auth.login(
-                    email: emailController.text,
-                    password: passwordController.text,
-                    url: Uri.parse(serverController.text),
-                  );
-                  // GoRouter.of(context).go('/home');
-                } catch (e) {
-                  debugPrint('$e');
-                  if (context.mounted) {
-                    ShadToaster.of(context).show(
-                      ShadToast(
-                        title: Text('Uh oh! Something went wrong'),
-                        description: Text(
-                          'There was a problem with your request: $e',
-                        ),
-                      ),
-                    );
-                  }
-                } finally {
-                  setState(() {
-                    isLoading = false;
-                  });
-                }
-              },
+              onPressed: _handleLogin,
+              child: SizedBox(
+                width: 80,
+                child: Center(
+                  child: isLoading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: ShadTheme.of(context).colorScheme.background,
+                          ),
+                        )
+                      : const Text('Login'),
+                ),
+              ),
             ),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: ListView(
-              shrinkWrap: true,
-              physics: const ClampingScrollPhysics(),
-              children: [
-                const SizedBox(height: 16),
-                const Text('Server Url'),
-                const SizedBox(height: 6),
-                ShadInput(
-                  placeholder: Text(c.defaultUrl.toString()),
-                  keyboardType: TextInputType.url,
-                  controller: serverController,
-                ),
-                const SizedBox(height: 16),
-                const Text('Email'),
-                const SizedBox(height: 6),
-                ShadInput(
-                  placeholder: Text('user@example.com'),
-                  keyboardType: TextInputType.emailAddress,
-                  controller: emailController,
-                ),
-                const SizedBox(height: 16),
-                const Text('Password'),
-                const SizedBox(height: 6),
-                ShadInput(
-                  placeholder: const Text(''),
-                  obscureText: obscure,
-                  controller: passwordController,
-                  trailing: ShadButton.ghost(
-                    width: 24,
-                    height: 24,
-                    padding: EdgeInsets.zero,
-                    child: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye),
-                    onPressed: () {
-                      setState(() => obscure = !obscure);
-                    },
+            child: AutofillGroup(
+              child: ListView(
+                shrinkWrap: true,
+                physics: const ClampingScrollPhysics(),
+                children: [
+                  const SizedBox(height: 16),
+                  const Text('Server Url'),
+                  const SizedBox(height: 6),
+                  ShadInput(
+                    placeholder: Text(c.defaultUrl.toString()),
+                    keyboardType: TextInputType.url,
+                    textInputAction: TextInputAction.next,
+                    controller: serverController,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  const Text('Email'),
+                  const SizedBox(height: 6),
+                  ShadInput(
+                    placeholder: Text('user@example.com'),
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.email],
+                    controller: emailController,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Password'),
+                  const SizedBox(height: 6),
+                  ShadInput(
+                    placeholder: const Text(''),
+                    obscureText: obscure,
+                    textInputAction: TextInputAction.done,
+                    autofillHints: const [AutofillHints.password],
+                    controller: passwordController,
+                    onSubmitted: (_) => _handleLogin(),
+                    trailing: ShadButton.ghost(
+                      width: 24,
+                      height: 24,
+                      padding: EdgeInsets.zero,
+                      child: Icon(
+                        obscure ? LucideIcons.eyeOff : LucideIcons.eye,
+                      ),
+                      onPressed: () {
+                        setState(() => obscure = !obscure);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

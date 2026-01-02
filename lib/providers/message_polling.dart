@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:ecp/ecp.dart';
 import 'package:eko_messanger/providers/database.dart';
 import 'package:eko_messanger/providers/ecp.dart';
 import 'package:flutter/foundation.dart';
@@ -7,7 +6,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:eko_messanger/providers/auth.dart';
 import 'package:drift/drift.dart';
 import 'package:eko_messanger/database/database.dart';
-import 'package:http/http.dart' as http;
 
 part '../generated/providers/message_polling.g.dart';
 
@@ -17,20 +15,27 @@ class MessagePolling extends _$MessagePolling {
 
   @override
   void build() {
-    // Listen to auth state changes
-    ref.listen(authProvider, (previous, next) {
-      if (next.isAuthenticated) {
+    // Listen to auth state changes by watching the notifier
+    final authNotifier = ref.watch(authProvider);
+
+    // Add listener to the ChangeNotifier
+    void authListener() {
+      if (authNotifier.isAuthenticated) {
         _startPolling();
       } else {
         _stopPolling();
       }
-    });
+    }
 
-    if (ref.read(authProvider).isAuthenticated) {
+    authNotifier.addListener(authListener);
+
+    // Initialize polling state based on current auth state
+    if (authNotifier.isAuthenticated) {
       _startPolling();
     }
 
     ref.onDispose(() {
+      authNotifier.removeListener(authListener);
       _stopPolling();
     });
   }

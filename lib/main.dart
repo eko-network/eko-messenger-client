@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:eko_messanger/providers/auth.dart';
@@ -15,22 +17,27 @@ import 'package:sqlite3/open.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final firebaseApp = await _initializeFirebase();
   open.overrideFor(OperatingSystem.android, openCipherOnAndroid);
   final deviceName = await getDeiviceName();
   final container = ProviderContainer(
     overrides: [deviceNameProvider.overrideWithValue(deviceName)],
   );
   await container.read(authProvider).initialize();
-  if (firebaseApp != null) {
-    await configureFirebaseMessaging(
-      authenticatedClient: () async => container.read(authProvider).client,
-      onToken: (token) async {
-        if (kDebugMode) {
-          debugPrint('FCM token: $token');
-        }
-      },
-    );
+
+  final bool isMobile = Platform.isAndroid || Platform.isIOS;
+  if (isMobile) {
+    debugPrint("mobile init");
+    final firebaseApp = await _initializeFirebase();
+    if (firebaseApp != null) {
+      await configureFirebaseMessaging(
+        authenticatedClient: () async => container.read(authProvider).client,
+        onToken: (token) async {
+          if (kDebugMode) {
+            debugPrint('FCM token: $token');
+          }
+        },
+      );
+    }
   }
   runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }
