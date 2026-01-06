@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-enum MessageStatus { sending, sent }
+enum MessageStatus { sending, sent, delivered }
 
 class MessageStatusConverter extends TypeConverter<MessageStatus, int> {
   const MessageStatusConverter();

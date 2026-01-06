@@ -6,7 +6,8 @@ class Messages extends Table {
   TextColumn get to => text().map(const UriTypeConverter())();
   TextColumn get from => text().map(const UriTypeConverter())();
   TextColumn get content => text().nullable()();
-  TextColumn get inReplyTo => text().nullable()();
+  TextColumn get inReplyTo =>
+      text().map(const UuidValueConverter()).nullable()();
   DateTimeColumn get time => dateTime()();
   IntColumn get status =>
       intEnum<MessageStatus>().withDefault(const Constant(0))();

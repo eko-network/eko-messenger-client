@@ -1604,6 +1604,466 @@ class UserDevicesCompanion extends UpdateCompanion<UserDevice> {
   }
 }
 
+class $AuthInfoTableTable extends AuthInfoTable
+    with TableInfo<$AuthInfoTableTable, AuthInfoTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AuthInfoTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _didMeta = const VerificationMeta('did');
+  @override
+  late final GeneratedColumn<int> did = GeneratedColumn<int>(
+    'did',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accessTokenMeta = const VerificationMeta(
+    'accessToken',
+  );
+  @override
+  late final GeneratedColumn<String> accessToken = GeneratedColumn<String>(
+    'access_token',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _refreshTokenMeta = const VerificationMeta(
+    'refreshToken',
+  );
+  @override
+  late final GeneratedColumn<String> refreshToken = GeneratedColumn<String>(
+    'refresh_token',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actorJsonMeta = const VerificationMeta(
+    'actorJson',
+  );
+  @override
+  late final GeneratedColumn<String> actorJson = GeneratedColumn<String>(
+    'actor_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverUrlMeta = const VerificationMeta(
+    'serverUrl',
+  );
+  @override
+  late final GeneratedColumn<String> serverUrl = GeneratedColumn<String>(
+    'server_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    did,
+    accessToken,
+    refreshToken,
+    expiresAt,
+    actorJson,
+    serverUrl,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'auth_info_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AuthInfoTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('did')) {
+      context.handle(
+        _didMeta,
+        did.isAcceptableOrUnknown(data['did']!, _didMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_didMeta);
+    }
+    if (data.containsKey('access_token')) {
+      context.handle(
+        _accessTokenMeta,
+        accessToken.isAcceptableOrUnknown(
+          data['access_token']!,
+          _accessTokenMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accessTokenMeta);
+    }
+    if (data.containsKey('refresh_token')) {
+      context.handle(
+        _refreshTokenMeta,
+        refreshToken.isAcceptableOrUnknown(
+          data['refresh_token']!,
+          _refreshTokenMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_refreshTokenMeta);
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiresAtMeta);
+    }
+    if (data.containsKey('actor_json')) {
+      context.handle(
+        _actorJsonMeta,
+        actorJson.isAcceptableOrUnknown(data['actor_json']!, _actorJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actorJsonMeta);
+    }
+    if (data.containsKey('server_url')) {
+      context.handle(
+        _serverUrlMeta,
+        serverUrl.isAcceptableOrUnknown(data['server_url']!, _serverUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_serverUrlMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AuthInfoTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AuthInfoTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      did: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}did'],
+      )!,
+      accessToken: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}access_token'],
+      )!,
+      refreshToken: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}refresh_token'],
+      )!,
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      )!,
+      actorJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_json'],
+      )!,
+      serverUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_url'],
+      )!,
+    );
+  }
+
+  @override
+  $AuthInfoTableTable createAlias(String alias) {
+    return $AuthInfoTableTable(attachedDatabase, alias);
+  }
+}
+
+class AuthInfoTableData extends DataClass
+    implements Insertable<AuthInfoTableData> {
+  final int id;
+  final int did;
+  final String accessToken;
+  final String refreshToken;
+  final DateTime expiresAt;
+  final String actorJson;
+  final String serverUrl;
+  const AuthInfoTableData({
+    required this.id,
+    required this.did,
+    required this.accessToken,
+    required this.refreshToken,
+    required this.expiresAt,
+    required this.actorJson,
+    required this.serverUrl,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['did'] = Variable<int>(did);
+    map['access_token'] = Variable<String>(accessToken);
+    map['refresh_token'] = Variable<String>(refreshToken);
+    map['expires_at'] = Variable<DateTime>(expiresAt);
+    map['actor_json'] = Variable<String>(actorJson);
+    map['server_url'] = Variable<String>(serverUrl);
+    return map;
+  }
+
+  AuthInfoTableCompanion toCompanion(bool nullToAbsent) {
+    return AuthInfoTableCompanion(
+      id: Value(id),
+      did: Value(did),
+      accessToken: Value(accessToken),
+      refreshToken: Value(refreshToken),
+      expiresAt: Value(expiresAt),
+      actorJson: Value(actorJson),
+      serverUrl: Value(serverUrl),
+    );
+  }
+
+  factory AuthInfoTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AuthInfoTableData(
+      id: serializer.fromJson<int>(json['id']),
+      did: serializer.fromJson<int>(json['did']),
+      accessToken: serializer.fromJson<String>(json['accessToken']),
+      refreshToken: serializer.fromJson<String>(json['refreshToken']),
+      expiresAt: serializer.fromJson<DateTime>(json['expiresAt']),
+      actorJson: serializer.fromJson<String>(json['actorJson']),
+      serverUrl: serializer.fromJson<String>(json['serverUrl']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'did': serializer.toJson<int>(did),
+      'accessToken': serializer.toJson<String>(accessToken),
+      'refreshToken': serializer.toJson<String>(refreshToken),
+      'expiresAt': serializer.toJson<DateTime>(expiresAt),
+      'actorJson': serializer.toJson<String>(actorJson),
+      'serverUrl': serializer.toJson<String>(serverUrl),
+    };
+  }
+
+  AuthInfoTableData copyWith({
+    int? id,
+    int? did,
+    String? accessToken,
+    String? refreshToken,
+    DateTime? expiresAt,
+    String? actorJson,
+    String? serverUrl,
+  }) => AuthInfoTableData(
+    id: id ?? this.id,
+    did: did ?? this.did,
+    accessToken: accessToken ?? this.accessToken,
+    refreshToken: refreshToken ?? this.refreshToken,
+    expiresAt: expiresAt ?? this.expiresAt,
+    actorJson: actorJson ?? this.actorJson,
+    serverUrl: serverUrl ?? this.serverUrl,
+  );
+  AuthInfoTableData copyWithCompanion(AuthInfoTableCompanion data) {
+    return AuthInfoTableData(
+      id: data.id.present ? data.id.value : this.id,
+      did: data.did.present ? data.did.value : this.did,
+      accessToken: data.accessToken.present
+          ? data.accessToken.value
+          : this.accessToken,
+      refreshToken: data.refreshToken.present
+          ? data.refreshToken.value
+          : this.refreshToken,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      actorJson: data.actorJson.present ? data.actorJson.value : this.actorJson,
+      serverUrl: data.serverUrl.present ? data.serverUrl.value : this.serverUrl,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AuthInfoTableData(')
+          ..write('id: $id, ')
+          ..write('did: $did, ')
+          ..write('accessToken: $accessToken, ')
+          ..write('refreshToken: $refreshToken, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('actorJson: $actorJson, ')
+          ..write('serverUrl: $serverUrl')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    did,
+    accessToken,
+    refreshToken,
+    expiresAt,
+    actorJson,
+    serverUrl,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AuthInfoTableData &&
+          other.id == this.id &&
+          other.did == this.did &&
+          other.accessToken == this.accessToken &&
+          other.refreshToken == this.refreshToken &&
+          other.expiresAt == this.expiresAt &&
+          other.actorJson == this.actorJson &&
+          other.serverUrl == this.serverUrl);
+}
+
+class AuthInfoTableCompanion extends UpdateCompanion<AuthInfoTableData> {
+  final Value<int> id;
+  final Value<int> did;
+  final Value<String> accessToken;
+  final Value<String> refreshToken;
+  final Value<DateTime> expiresAt;
+  final Value<String> actorJson;
+  final Value<String> serverUrl;
+  const AuthInfoTableCompanion({
+    this.id = const Value.absent(),
+    this.did = const Value.absent(),
+    this.accessToken = const Value.absent(),
+    this.refreshToken = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.actorJson = const Value.absent(),
+    this.serverUrl = const Value.absent(),
+  });
+  AuthInfoTableCompanion.insert({
+    this.id = const Value.absent(),
+    required int did,
+    required String accessToken,
+    required String refreshToken,
+    required DateTime expiresAt,
+    required String actorJson,
+    required String serverUrl,
+  }) : did = Value(did),
+       accessToken = Value(accessToken),
+       refreshToken = Value(refreshToken),
+       expiresAt = Value(expiresAt),
+       actorJson = Value(actorJson),
+       serverUrl = Value(serverUrl);
+  static Insertable<AuthInfoTableData> custom({
+    Expression<int>? id,
+    Expression<int>? did,
+    Expression<String>? accessToken,
+    Expression<String>? refreshToken,
+    Expression<DateTime>? expiresAt,
+    Expression<String>? actorJson,
+    Expression<String>? serverUrl,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (did != null) 'did': did,
+      if (accessToken != null) 'access_token': accessToken,
+      if (refreshToken != null) 'refresh_token': refreshToken,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (actorJson != null) 'actor_json': actorJson,
+      if (serverUrl != null) 'server_url': serverUrl,
+    });
+  }
+
+  AuthInfoTableCompanion copyWith({
+    Value<int>? id,
+    Value<int>? did,
+    Value<String>? accessToken,
+    Value<String>? refreshToken,
+    Value<DateTime>? expiresAt,
+    Value<String>? actorJson,
+    Value<String>? serverUrl,
+  }) {
+    return AuthInfoTableCompanion(
+      id: id ?? this.id,
+      did: did ?? this.did,
+      accessToken: accessToken ?? this.accessToken,
+      refreshToken: refreshToken ?? this.refreshToken,
+      expiresAt: expiresAt ?? this.expiresAt,
+      actorJson: actorJson ?? this.actorJson,
+      serverUrl: serverUrl ?? this.serverUrl,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (did.present) {
+      map['did'] = Variable<int>(did.value);
+    }
+    if (accessToken.present) {
+      map['access_token'] = Variable<String>(accessToken.value);
+    }
+    if (refreshToken.present) {
+      map['refresh_token'] = Variable<String>(refreshToken.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (actorJson.present) {
+      map['actor_json'] = Variable<String>(actorJson.value);
+    }
+    if (serverUrl.present) {
+      map['server_url'] = Variable<String>(serverUrl.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AuthInfoTableCompanion(')
+          ..write('id: $id, ')
+          ..write('did: $did, ')
+          ..write('accessToken: $accessToken, ')
+          ..write('refreshToken: $refreshToken, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('actorJson: $actorJson, ')
+          ..write('serverUrl: $serverUrl')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1647,17 +2107,15 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _inReplyToMeta = const VerificationMeta(
-    'inReplyTo',
-  );
   @override
-  late final GeneratedColumn<String> inReplyTo = GeneratedColumn<String>(
-    'in_reply_to',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+  late final GeneratedColumnWithTypeConverter<UuidValue?, String> inReplyTo =
+      GeneratedColumn<String>(
+        'in_reply_to',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<UuidValue?>($MessagesTable.$converterinReplyTon);
   static const VerificationMeta _timeMeta = const VerificationMeta('time');
   @override
   late final GeneratedColumn<DateTime> time = GeneratedColumn<DateTime>(
@@ -1705,12 +2163,6 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
         content.isAcceptableOrUnknown(data['content']!, _contentMeta),
       );
     }
-    if (data.containsKey('in_reply_to')) {
-      context.handle(
-        _inReplyToMeta,
-        inReplyTo.isAcceptableOrUnknown(data['in_reply_to']!, _inReplyToMeta),
-      );
-    }
     if (data.containsKey('time')) {
       context.handle(
         _timeMeta,
@@ -1750,9 +2202,11 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
         DriftSqlType.string,
         data['${effectivePrefix}content'],
       ),
-      inReplyTo: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}in_reply_to'],
+      inReplyTo: $MessagesTable.$converterinReplyTon.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}in_reply_to'],
+        ),
       ),
       time: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -1776,6 +2230,10 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       const UuidValueConverter();
   static TypeConverter<Uri, String> $converterto = const UriTypeConverter();
   static TypeConverter<Uri, String> $converterfrom = const UriTypeConverter();
+  static TypeConverter<UuidValue, String> $converterinReplyTo =
+      const UuidValueConverter();
+  static TypeConverter<UuidValue?, String?> $converterinReplyTon =
+      NullAwareTypeConverter.wrap($converterinReplyTo);
   static JsonTypeConverter2<MessageStatus, int, int> $converterstatus =
       const EnumIndexConverter<MessageStatus>(MessageStatus.values);
 }
@@ -1785,7 +2243,7 @@ class Message extends DataClass implements Insertable<Message> {
   final Uri to;
   final Uri from;
   final String? content;
-  final String? inReplyTo;
+  final UuidValue? inReplyTo;
   final DateTime time;
   final MessageStatus status;
   const Message({
@@ -1813,7 +2271,9 @@ class Message extends DataClass implements Insertable<Message> {
       map['content'] = Variable<String>(content);
     }
     if (!nullToAbsent || inReplyTo != null) {
-      map['in_reply_to'] = Variable<String>(inReplyTo);
+      map['in_reply_to'] = Variable<String>(
+        $MessagesTable.$converterinReplyTon.toSql(inReplyTo),
+      );
     }
     map['time'] = Variable<DateTime>(time);
     {
@@ -1850,7 +2310,7 @@ class Message extends DataClass implements Insertable<Message> {
       to: serializer.fromJson<Uri>(json['to']),
       from: serializer.fromJson<Uri>(json['from']),
       content: serializer.fromJson<String?>(json['content']),
-      inReplyTo: serializer.fromJson<String?>(json['inReplyTo']),
+      inReplyTo: serializer.fromJson<UuidValue?>(json['inReplyTo']),
       time: serializer.fromJson<DateTime>(json['time']),
       status: $MessagesTable.$converterstatus.fromJson(
         serializer.fromJson<int>(json['status']),
@@ -1865,7 +2325,7 @@ class Message extends DataClass implements Insertable<Message> {
       'to': serializer.toJson<Uri>(to),
       'from': serializer.toJson<Uri>(from),
       'content': serializer.toJson<String?>(content),
-      'inReplyTo': serializer.toJson<String?>(inReplyTo),
+      'inReplyTo': serializer.toJson<UuidValue?>(inReplyTo),
       'time': serializer.toJson<DateTime>(time),
       'status': serializer.toJson<int>(
         $MessagesTable.$converterstatus.toJson(status),
@@ -1878,7 +2338,7 @@ class Message extends DataClass implements Insertable<Message> {
     Uri? to,
     Uri? from,
     Value<String?> content = const Value.absent(),
-    Value<String?> inReplyTo = const Value.absent(),
+    Value<UuidValue?> inReplyTo = const Value.absent(),
     DateTime? time,
     MessageStatus? status,
   }) => Message(
@@ -1937,7 +2397,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<Uri> to;
   final Value<Uri> from;
   final Value<String?> content;
-  final Value<String?> inReplyTo;
+  final Value<UuidValue?> inReplyTo;
   final Value<DateTime> time;
   final Value<MessageStatus> status;
   final Value<int> rowid;
@@ -1991,7 +2451,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     Value<Uri>? to,
     Value<Uri>? from,
     Value<String?>? content,
-    Value<String?>? inReplyTo,
+    Value<UuidValue?>? inReplyTo,
     Value<DateTime>? time,
     Value<MessageStatus>? status,
     Value<int>? rowid,
@@ -2026,7 +2486,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       map['content'] = Variable<String>(content.value);
     }
     if (inReplyTo.present) {
-      map['in_reply_to'] = Variable<String>(inReplyTo.value);
+      map['in_reply_to'] = Variable<String>(
+        $MessagesTable.$converterinReplyTon.toSql(inReplyTo.value),
+      );
     }
     if (time.present) {
       map['time'] = Variable<DateTime>(time.value);
@@ -2325,12 +2787,8 @@ class $ConversationsTable extends Conversations
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
   );
   @override
   List<GeneratedColumn> get $columns => [participant, id];
@@ -2516,6 +2974,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LocalIdentityTable localIdentity = $LocalIdentityTable(this);
   late final $UsersTable users = $UsersTable(this);
   late final $UserDevicesTable userDevices = $UserDevicesTable(this);
+  late final $AuthInfoTableTable authInfoTable = $AuthInfoTableTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
   late final $ContactsTable contacts = $ContactsTable(this);
   late final $ConversationsTable conversations = $ConversationsTable(this);
@@ -2536,6 +2995,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     localIdentity,
     users,
     userDevices,
+    authInfoTable,
     messages,
     contacts,
     conversations,
@@ -3745,13 +4205,253 @@ typedef $$UserDevicesTableProcessedTableManager =
       UserDevice,
       PrefetchHooks Function({bool userId})
     >;
+typedef $$AuthInfoTableTableCreateCompanionBuilder =
+    AuthInfoTableCompanion Function({
+      Value<int> id,
+      required int did,
+      required String accessToken,
+      required String refreshToken,
+      required DateTime expiresAt,
+      required String actorJson,
+      required String serverUrl,
+    });
+typedef $$AuthInfoTableTableUpdateCompanionBuilder =
+    AuthInfoTableCompanion Function({
+      Value<int> id,
+      Value<int> did,
+      Value<String> accessToken,
+      Value<String> refreshToken,
+      Value<DateTime> expiresAt,
+      Value<String> actorJson,
+      Value<String> serverUrl,
+    });
+
+class $$AuthInfoTableTableFilterComposer
+    extends Composer<_$AppDatabase, $AuthInfoTableTable> {
+  $$AuthInfoTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get did => $composableBuilder(
+    column: $table.did,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accessToken => $composableBuilder(
+    column: $table.accessToken,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get refreshToken => $composableBuilder(
+    column: $table.refreshToken,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actorJson => $composableBuilder(
+    column: $table.actorJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverUrl => $composableBuilder(
+    column: $table.serverUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AuthInfoTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $AuthInfoTableTable> {
+  $$AuthInfoTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get did => $composableBuilder(
+    column: $table.did,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get accessToken => $composableBuilder(
+    column: $table.accessToken,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get refreshToken => $composableBuilder(
+    column: $table.refreshToken,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actorJson => $composableBuilder(
+    column: $table.actorJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverUrl => $composableBuilder(
+    column: $table.serverUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AuthInfoTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AuthInfoTableTable> {
+  $$AuthInfoTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get did =>
+      $composableBuilder(column: $table.did, builder: (column) => column);
+
+  GeneratedColumn<String> get accessToken => $composableBuilder(
+    column: $table.accessToken,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get refreshToken => $composableBuilder(
+    column: $table.refreshToken,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<String> get actorJson =>
+      $composableBuilder(column: $table.actorJson, builder: (column) => column);
+
+  GeneratedColumn<String> get serverUrl =>
+      $composableBuilder(column: $table.serverUrl, builder: (column) => column);
+}
+
+class $$AuthInfoTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AuthInfoTableTable,
+          AuthInfoTableData,
+          $$AuthInfoTableTableFilterComposer,
+          $$AuthInfoTableTableOrderingComposer,
+          $$AuthInfoTableTableAnnotationComposer,
+          $$AuthInfoTableTableCreateCompanionBuilder,
+          $$AuthInfoTableTableUpdateCompanionBuilder,
+          (
+            AuthInfoTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $AuthInfoTableTable,
+              AuthInfoTableData
+            >,
+          ),
+          AuthInfoTableData,
+          PrefetchHooks Function()
+        > {
+  $$AuthInfoTableTableTableManager(_$AppDatabase db, $AuthInfoTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AuthInfoTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AuthInfoTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AuthInfoTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> did = const Value.absent(),
+                Value<String> accessToken = const Value.absent(),
+                Value<String> refreshToken = const Value.absent(),
+                Value<DateTime> expiresAt = const Value.absent(),
+                Value<String> actorJson = const Value.absent(),
+                Value<String> serverUrl = const Value.absent(),
+              }) => AuthInfoTableCompanion(
+                id: id,
+                did: did,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                expiresAt: expiresAt,
+                actorJson: actorJson,
+                serverUrl: serverUrl,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int did,
+                required String accessToken,
+                required String refreshToken,
+                required DateTime expiresAt,
+                required String actorJson,
+                required String serverUrl,
+              }) => AuthInfoTableCompanion.insert(
+                id: id,
+                did: did,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                expiresAt: expiresAt,
+                actorJson: actorJson,
+                serverUrl: serverUrl,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AuthInfoTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AuthInfoTableTable,
+      AuthInfoTableData,
+      $$AuthInfoTableTableFilterComposer,
+      $$AuthInfoTableTableOrderingComposer,
+      $$AuthInfoTableTableAnnotationComposer,
+      $$AuthInfoTableTableCreateCompanionBuilder,
+      $$AuthInfoTableTableUpdateCompanionBuilder,
+      (
+        AuthInfoTableData,
+        BaseReferences<_$AppDatabase, $AuthInfoTableTable, AuthInfoTableData>,
+      ),
+      AuthInfoTableData,
+      PrefetchHooks Function()
+    >;
 typedef $$MessagesTableCreateCompanionBuilder =
     MessagesCompanion Function({
       required UuidValue id,
       required Uri to,
       required Uri from,
       Value<String?> content,
-      Value<String?> inReplyTo,
+      Value<UuidValue?> inReplyTo,
       required DateTime time,
       Value<MessageStatus> status,
       Value<int> rowid,
@@ -3762,7 +4462,7 @@ typedef $$MessagesTableUpdateCompanionBuilder =
       Value<Uri> to,
       Value<Uri> from,
       Value<String?> content,
-      Value<String?> inReplyTo,
+      Value<UuidValue?> inReplyTo,
       Value<DateTime> time,
       Value<MessageStatus> status,
       Value<int> rowid,
@@ -3799,10 +4499,11 @@ class $$MessagesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get inReplyTo => $composableBuilder(
-    column: $table.inReplyTo,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<UuidValue?, UuidValue, String> get inReplyTo =>
+      $composableBuilder(
+        column: $table.inReplyTo,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<DateTime> get time => $composableBuilder(
     column: $table.time,
@@ -3882,7 +4583,7 @@ class $$MessagesTableAnnotationComposer
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
 
-  GeneratedColumn<String> get inReplyTo =>
+  GeneratedColumnWithTypeConverter<UuidValue?, String> get inReplyTo =>
       $composableBuilder(column: $table.inReplyTo, builder: (column) => column);
 
   GeneratedColumn<DateTime> get time =>
@@ -3924,7 +4625,7 @@ class $$MessagesTableTableManager
                 Value<Uri> to = const Value.absent(),
                 Value<Uri> from = const Value.absent(),
                 Value<String?> content = const Value.absent(),
-                Value<String?> inReplyTo = const Value.absent(),
+                Value<UuidValue?> inReplyTo = const Value.absent(),
                 Value<DateTime> time = const Value.absent(),
                 Value<MessageStatus> status = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -3944,7 +4645,7 @@ class $$MessagesTableTableManager
                 required Uri to,
                 required Uri from,
                 Value<String?> content = const Value.absent(),
-                Value<String?> inReplyTo = const Value.absent(),
+                Value<UuidValue?> inReplyTo = const Value.absent(),
                 required DateTime time,
                 Value<MessageStatus> status = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4561,6 +5262,8 @@ class $AppDatabaseManager {
       $$UsersTableTableManager(_db, _db.users);
   $$UserDevicesTableTableManager get userDevices =>
       $$UserDevicesTableTableManager(_db, _db.userDevices);
+  $$AuthInfoTableTableTableManager get authInfoTable =>
+      $$AuthInfoTableTableTableManager(_db, _db.authInfoTable);
   $$MessagesTableTableManager get messages =>
       $$MessagesTableTableManager(_db, _db.messages);
   $$ContactsTableTableManager get contacts =>
