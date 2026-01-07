@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:ecp/ecp.dart';
 import 'package:eko_messanger/database/type_converters.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid_value.dart';
 
 import '../database.dart';
@@ -24,7 +25,7 @@ class MessagesDao extends DatabaseAccessor<AppDatabase>
     switch (activity) {
       case TransientActivity():
         {
-          print("Not Implemented: transient activity");
+          debugPrint("Not Implemented: transient activity");
         }
       case StableActivity():
         {
@@ -43,7 +44,7 @@ class MessagesDao extends DatabaseAccessor<AppDatabase>
               ),
             );
           } else {
-            print("Not Implemented: Non-Create");
+            debugPrint("Not Implemented: Non-Create");
           }
         }
     }

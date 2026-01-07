@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:ecp/ecp.dart';
 import 'package:eko_messanger/providers/database.dart';
 import 'package:eko_messanger/providers/ecp.dart';
 import 'package:flutter/foundation.dart';
@@ -11,7 +12,7 @@ part '../generated/providers/message_polling.g.dart';
 
 @Riverpod(keepAlive: true)
 class MessagePolling extends _$MessagePolling {
-  Timer? _pollingTimer;
+  StreamSubscription? _messageStreamSubscription;
 
   @override
   void build() {
@@ -21,79 +22,80 @@ class MessagePolling extends _$MessagePolling {
     // Add listener to the ChangeNotifier
     void authListener() {
       if (authNotifier.isAuthenticated) {
-        _startPolling();
+        _startStreaming();
       } else {
-        _stopPolling();
+        _stopStreaming();
       }
     }
 
     authNotifier.addListener(authListener);
 
-    // Initialize polling state based on current auth state
+    // Initialize streaming state based on current auth state
     if (authNotifier.isAuthenticated) {
-      _startPolling();
+      _startStreaming();
     }
 
     ref.onDispose(() {
       authNotifier.removeListener(authListener);
-      _stopPolling();
+      _stopStreaming();
     });
   }
 
-  void _startPolling() {
-    if (_pollingTimer?.isActive ?? false) return;
+  void _startStreaming() {
+    if (_messageStreamSubscription != null) return;
 
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
-      await _pollForMessages();
-    });
+    final ecpClient = ref.read(ecpProvider);
+    if (ecpClient == null) return;
 
-    debugPrint('Started message polling (every 3 seconds)');
+    debugPrint('Starting message stream');
+
+    _messageStreamSubscription = ecpClient.messageStreamController
+        .getMessageStream()
+        .listen(
+          _handleMessage,
+          onError: (error) {
+            debugPrint('Error in message stream: $error');
+          },
+          cancelOnError: false,
+        );
   }
 
-  void _stopPolling() {
-    _pollingTimer?.cancel();
-    _pollingTimer = null;
-    debugPrint('Stopped message polling');
+  void _stopStreaming() {
+    _messageStreamSubscription?.cancel();
+    _messageStreamSubscription = null;
+    debugPrint('Stopped message stream');
   }
 
-  Future<void> _pollForMessages() async {
+  Future<void> _handleMessage(ActivityWithRecipients activity) async {
+    print(activity);
     try {
-      final response = await ref.read(ecpProvider)!.getMessages();
-
-      if (kDebugMode) {
-        debugPrint('Poll response: $response');
-      }
-
       final db = ref.read(appDatabaseProvider);
-
-      for (final activity in response) {
-        final from = activity.from;
-        // Ensure contact exists
-        var contact = await db.contactsDao.getContactById(from);
-        if (contact == null) {
-          try {
-            final person = await ref.read(ecpProvider)!.getActor(from);
-            await db.contactsDao.insertNewContact(person);
-            contact = person;
-          } catch (e) {
-            debugPrint('Could not fetch remote actor $from: $e');
-            continue; // Skip if we can't get actor details
-          }
+      final from = activity.from;
+      // Ensure contact exists
+      var contact = await db.contactsDao.getContactById(from);
+      if (contact == null) {
+        try {
+          final person = await ref.read(ecpProvider)!.getActor(from);
+          await db.contactsDao.insertNewContact(person);
+          contact = person;
+        } catch (e) {
+          debugPrint('Could not fetch remote actor $from: $e');
+          return; // Skip if we can't get actor details
         }
-
-        // Ensure conversation exists
-        final conversation = await db.conversationsDao
-            .getConversationByParticipant(from);
-        if (conversation == null) {
-          await db.conversationsDao.insertNewConversation(
-            ConversationsCompanion(participant: Value(from)),
-          );
-        }
-
-        await db.messagesDao.handleActivity(activity);
       }
+
+      // Ensure conversation exists
+      final conversation = await db.conversationsDao
+          .getConversationByParticipant(from);
+      if (conversation == null) {
+        await db.conversationsDao.insertNewConversation(
+          ConversationsCompanion(participant: Value(from)),
+        );
+      }
+
+      await db.messagesDao.handleActivity(activity);
     } catch (e) {
-      debugPrint('Error polling for messages: $e');
+      debugPrint('Error handling messages: $e');
     }
   }
 }

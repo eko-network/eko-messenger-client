@@ -18,5 +18,6 @@ EcpClient? ecp(Ref ref) {
     client: auth.client,
     me: authInfo.actor,
     did: authInfo.did,
+    tokenGetter: auth.token,
   );
 }

@@ -45,6 +45,9 @@ class AuthNotifier extends ChangeNotifier {
   AuthInfo? get info => _auth.info;
   http.Client get client => _auth.client;
   Storage get ecpStorage => _auth.ecpStorage;
+  Future<String> token() async {
+    return await _auth.getValidAccessToken();
+  }
 }
 
 @Riverpod(keepAlive: true)
