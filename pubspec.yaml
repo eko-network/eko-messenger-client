@@ -17,7 +17,9 @@ dependencies:
   riverpod_annotation: ^3.0.3
   hooks_riverpod: ^3.0.3
   ecp:
-    path: ../ecp-dart-sdk
+    git:
+      url: https://github.com/eko-network/ecp-dart-sdk
+      ref: notifications
   flutter_secure_storage: ^9.2.4
   path_provider: ^2.1.5
   drift: ^2.28.2

@@ -1,8 +1,6 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:ecp/ecp.dart';
 import 'package:eko_messanger/database/daos/conversations_dao.dart';
 import 'package:eko_messanger/database/database.dart';
-import 'package:eko_messanger/providers/auth.dart';
 import 'package:eko_messanger/providers/database.dart';
 import 'package:eko_messanger/providers/ecp.dart';
 import 'package:eko_messanger/screens/chat/adaptive_chat_layout.dart';
