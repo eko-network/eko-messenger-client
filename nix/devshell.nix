@@ -1,12 +1,12 @@
 {pkgs}: let
   androidComposition = pkgs.androidenv.composeAndroidPackages {
-    buildToolsVersions = ["35.0.0"];
-    platformVersions = ["36" "35" "34"];
-    includeNDK = true;
-    ndkVersions = ["28.2.13676358"];
-    includeCmake = true;
-    cmakeVersions = ["3.22.1"];
-    includeEmulator = false;
+        buildToolsVersions = ["35.0.0"];
+        platformVersions = ["36" "35" "34"];
+        includeNDK = true;
+        ndkVersions = ["28.2.13676358" "27.0.12077973"];
+        includeCmake = true;
+        cmakeVersions = ["3.22.1"];
+        includeEmulator = false;
   };
   androidSdk = androidComposition.androidsdk;
 

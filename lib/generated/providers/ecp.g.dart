@@ -13,8 +13,8 @@ part of '../../providers/ecp.dart';
 const ecpProvider = EcpProvider._();
 
 final class EcpProvider
-    extends $FunctionalProvider<EcpClient?, EcpClient?, EcpClient?>
-    with $Provider<EcpClient?> {
+    extends $FunctionalProvider<EcpClient, EcpClient, EcpClient>
+    with $Provider<EcpClient> {
   const EcpProvider._()
     : super(
         from: null,
@@ -31,21 +31,21 @@ final class EcpProvider
 
   @$internal
   @override
-  $ProviderElement<EcpClient?> $createElement($ProviderPointer pointer) =>
+  $ProviderElement<EcpClient> $createElement($ProviderPointer pointer) =>
       $ProviderElement(pointer);
 
   @override
-  EcpClient? create(Ref ref) {
+  EcpClient create(Ref ref) {
     return ecp(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(EcpClient? value) {
+  Override overrideWithValue(EcpClient value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<EcpClient?>(value),
+      providerOverride: $SyncValueProvider<EcpClient>(value),
     );
   }
 }
 
-String _$ecpHash() => r'734226d60fa66a597e399b4177f63be744e5c683';
+String _$ecpHash() => r'2bc57bdd75f3cd1a5eda5d85f9a6ff99d717154c';

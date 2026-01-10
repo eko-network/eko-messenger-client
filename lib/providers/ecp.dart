@@ -5,19 +5,8 @@ import 'package:ecp/ecp.dart';
 part '../generated/providers/ecp.g.dart';
 
 @Riverpod(keepAlive: true)
-EcpClient? ecp(Ref ref) {
+EcpClient ecp(Ref ref) {
   final auth = ref.watch(authProvider);
-  final authInfo = auth.info;
-
-  if (authInfo == null) {
-    return null;
-  }
-
-  return EcpClient(
-    storage: auth.ecpStorage,
-    client: auth.client,
-    me: authInfo.actor,
-    did: authInfo.did,
-    tokenGetter: auth.token,
-  );
+  assert(auth.ecpClient != null, "EcpClient used before authentication");
+  return auth.ecpClient!;
 }
