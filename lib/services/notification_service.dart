@@ -24,9 +24,21 @@ class NotificationService {
           requestSoundPermission: true,
         );
 
+    const LinuxInitializationSettings linuxSettings =
+        LinuxInitializationSettings(defaultActionName: 'Open notification');
+
+    const WindowsInitializationSettings windowsSettings =
+        WindowsInitializationSettings(
+          appName: 'Eko Messenger',
+          appUserModelId: 'com.eko.messenger',
+          guid: "",
+        );
+
     const InitializationSettings settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
+      linux: linuxSettings,
+      windows: windowsSettings,
     );
 
     await _plugin.initialize(
@@ -79,13 +91,6 @@ class NotificationService {
     // This could navigate to specific conversations, etc.
   }
 
-  /// Show a notification with the given parameters
-  ///
-  /// [id] - Unique notification ID
-  /// [title] - Notification title
-  /// [body] - Notification body text
-  /// [channelId] - Android channel ID (defaults to 'default')
-  /// [payload] - Optional data payload for handling taps
   Future<void> showNotification({
     required int id,
     required String title,
@@ -111,30 +116,30 @@ class NotificationService {
       presentSound: true,
     );
 
+    const linuxDetails = LinuxNotificationDetails();
+
+    const windowsDetails = WindowsNotificationDetails();
+
     final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
+      linux: linuxDetails,
+      windows: windowsDetails,
     );
 
     await _plugin.show(id, title, body, details, payload: payload);
   }
 
-  /// Show a notification from UnifiedPush message data
-  ///
-  /// [message] - The raw message string from UnifiedPush
-  /// [id] - Optional notification ID (will be generated if not provided)
-  Future<void> showUnifiedPushNotification({
+  Future<void> showNewMessageNotification({
+    required String from,
     required String message,
     int? id,
   }) async {
     // Generate ID from message hash if not provided
     final notificationId = id ?? message.hashCode;
-
-    // TODO: Parse the message format expected from your server
-    // For now, showing the raw message
     await showNotification(
       id: notificationId,
-      title: 'New Message',
+      title: from,
       body: message,
       channelId: 'messages',
     );

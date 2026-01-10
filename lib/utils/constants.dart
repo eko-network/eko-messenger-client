@@ -11,6 +11,8 @@ const String primaryColorKey = "pmk";
 const String grayMessageColorKey = "gmk";
 const double wideScreen = 700;
 
+final isMobile = Platform.isAndroid || Platform.isIOS;
+final isDesktop = !isMobile;
 // Multi-instance support: Change appInstanceId to run multiple clients
 final String appInstanceId = kDebugMode
     ? Platform.environment['APP_INST'] ?? 'eko_messenger_dev'

@@ -1,4 +1,5 @@
 import 'package:eko_messanger/providers/ecp.dart';
+import 'package:eko_messanger/providers/message_polling.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:eko_messanger/services/unifiedpush_service.dart';
@@ -40,10 +41,19 @@ UnifiedPushService unifiedpush(Ref ref) {
     // TODO: Notify server about unregistration
   };
 
-  service.onMessageReceived = (message) {
+  service.onMessageReceived = (message) async {
     debugPrint('[UnifiedPush Provider] Message: $message');
+    try {
+      final activities = await ref.read(ecpProvider).getMessages();
+      final messagePolling = ref.read(messagePollingProvider.notifier);
 
-    // TODO: message processing
+      // Process each activity through the unified pipeline
+      for (final activity in activities) {
+        await messagePolling.processMessage(activity, notifiableOverride: true);
+      }
+    } catch (e) {
+      debugPrint('[UnifiedPush Provider] Error processing messages: $e');
+    }
   };
 
   return service;

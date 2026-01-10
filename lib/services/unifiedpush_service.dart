@@ -195,9 +195,6 @@ class UnifiedPushService {
 
     // Call custom handler if provided
     onMessageReceived?.call(messageText);
-
-    // Show notification using NotificationService
-    _notificationService.showUnifiedPushNotification(message: messageText);
   }
 
   /// Get status information for debugging
