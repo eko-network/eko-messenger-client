@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:eko_messanger/providers/auth.dart';
 import 'package:eko_messanger/providers/device_name_provider.dart';
 import 'package:eko_messanger/providers/messages.dart';
@@ -8,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:eko_messanger/providers/app_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:eko_messanger/utils/constants.dart' as c;
-import 'package:eko_messanger/providers/unifiedpush.dart';
 import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
 import 'package:sqlite3/open.dart';
 
