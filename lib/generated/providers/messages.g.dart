@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '../../providers/message_polling.dart';
+part of '../../providers/messages.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -41,7 +41,7 @@ final class MessagePollingProvider
   }
 }
 
-String _$messagePollingHash() => r'087a6f2bc4b42f60450b7e6f1cb8a58cab19f56b';
+String _$messagePollingHash() => r'3e2a4fab831b8ba1d1b7dba56980b4a8277beae7';
 
 abstract class _$MessagePolling extends $Notifier<void> {
   void build();

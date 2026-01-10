@@ -54,4 +54,4 @@ final class UnifiedpushProvider
   }
 }
 
-String _$unifiedpushHash() => r'fdc2d5e956f1210d3a76f1709d83481cb6a27aa7';
+String _$unifiedpushHash() => r'f5588ceda7d16244cf513696f50cd633c32be580';

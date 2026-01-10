@@ -12,7 +12,7 @@ import 'package:eko_messanger/providers/auth.dart';
 import 'package:drift/drift.dart';
 import 'package:eko_messanger/database/database.dart';
 
-part '../generated/providers/message_polling.g.dart';
+part '../generated/providers/messages.g.dart';
 
 @Riverpod(keepAlive: true)
 class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
@@ -161,10 +161,11 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
                 ConversationsCompanion(participant: Value(from)),
               );
             }
+            debugPrint("Processed message, notifiable: $notifiable");
             if (notifiable) {
+              // TODO discard malformed objects
               _notificationService.showNewMessageNotification(
                 from: contact.preferredUsername,
-                // TODO discard malformed objects
                 message: note.content ?? 'message',
               );
             }

@@ -1,5 +1,5 @@
 import 'package:eko_messanger/providers/ecp.dart';
-import 'package:eko_messanger/providers/message_polling.dart';
+import 'package:eko_messanger/providers/messages.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:eko_messanger/services/unifiedpush_service.dart';
