@@ -2778,7 +2778,7 @@ class $ConversationsTable extends Conversations
         type: DriftSqlType.string,
         requiredDuringInsert: true,
         defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES contacts (id)',
+          'REFERENCES contacts (id) ON DELETE CASCADE',
         ),
       ).withConverter<Uri>($ConversationsTable.$converterparticipant);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
@@ -3000,6 +3000,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     contacts,
     conversations,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'contacts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('conversations', kind: UpdateKind.delete)],
+    ),
+  ]);
 }
 
 typedef $$SessionsTableCreateCompanionBuilder =

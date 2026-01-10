@@ -61,7 +61,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
     _messageController.clear();
     try {
       await ref
-          .read(ecpProvider)!
+          .read(ecpProvider)
           .sendMessage(person: widget.conversation.contact, message: activity);
       await db.messagesDao.updateMessageStatus(
         activity.object.base.id,

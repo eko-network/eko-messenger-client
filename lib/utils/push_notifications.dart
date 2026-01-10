@@ -1,7 +1,8 @@
+// FIREBASE MESSAGING - COMMENTED OUT FOR UNIFIEDPUSH MIGRATION
+// This code is preserved for reference but is no longer active
+
 import 'dart:async';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +10,7 @@ import 'package:http/http.dart' as http;
 typedef AuthenticatedClientBuilder = Future<http.Client> Function();
 typedef TokenHandler = Future<void> Function(String token);
 
+/* FIREBASE BACKGROUND HANDLER - DISABLED
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +18,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await _initializeLocalNotifications();
   await _showNotification(message);
 }
+*/
 
+/* FIREBASE LOCAL NOTIFICATIONS - DISABLED
 late FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
 
 Future<void> _initializeLocalNotifications() async {
@@ -74,7 +78,9 @@ Future<void> _showNotification(RemoteMessage message) async {
     notificationDetails,
   );
 }
+*/
 
+/* FIREBASE MESSAGING CONFIGURATION - DISABLED
 Future<void> configureFirebaseMessaging({
   required AuthenticatedClientBuilder authenticatedClient,
   TokenHandler? onToken,
@@ -116,3 +122,4 @@ Future<void> configureFirebaseMessaging({
     }
   });
 }
+*/

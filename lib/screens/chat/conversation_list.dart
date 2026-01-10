@@ -85,7 +85,7 @@ class _ConversationListState extends ConsumerState<ConversationList> {
     );
     try {
       final person = await ref
-          .read(ecpProvider)!
+          .read(ecpProvider)
           .getActorWithWebfinger(newMessageController.text.trim());
       final db = ref.read(appDatabaseProvider);
       await db.contactsDao.insertNewContact(person);
