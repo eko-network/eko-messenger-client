@@ -36,6 +36,7 @@ part '../generated/database/database.g.dart';
     SignedPreKeys,
     Identities,
     LocalIdentity,
+    Capabilities,
     // Auth
     Users,
     UserDevices,

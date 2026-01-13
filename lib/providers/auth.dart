@@ -4,7 +4,7 @@ import 'package:eko_messanger/database/database.dart';
 import 'package:eko_messanger/database/daos/ecp/storage.dart';
 import 'package:eko_messanger/providers/database.dart';
 import 'package:eko_messanger/providers/device_name_provider.dart';
-import 'package:eko_messanger/providers/unifiedpush.dart';
+import 'package:eko_messanger/providers/push.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -31,7 +31,7 @@ class AuthNotifier extends ChangeNotifier {
   }) async {
     await _auth.login(email: email, password: password, url: url);
     await _initializeEcpClient();
-    await _initializeUnifiedPushIfMobile();
+    await _initializeMessagingIfSupported();
     notifyListeners();
   }
 
@@ -50,19 +50,22 @@ class AuthNotifier extends ChangeNotifier {
     await _auth.initialize();
     if (_auth.isAuthenticated) {
       await _initializeEcpClient();
-      await _initializeUnifiedPushIfMobile();
+      await _initializeMessagingIfSupported();
     }
   }
 
-  Future<void> _initializeUnifiedPushIfMobile() async {
-    final bool isMobile = Platform.isAndroid || Platform.isIOS;
-    if (isMobile) {
-      debugPrint("Initializing UnifiedPush after authentication");
+  Future<void> _initializeMessagingIfSupported() async {
+    // Only initialize on platforms that support push messaging
+    final bool shouldInitialize =
+        Platform.isAndroid || Platform.isIOS || Platform.isLinux;
+
+    if (shouldInitialize) {
+      debugPrint("Initializing push messaging after authentication");
       try {
-        final pushService = _ref.read(unifiedpushProvider);
-        await initializeUnifiedPush(pushService);
+        // Just read the provider to trigger initialization
+        _ref.read(pushProvider);
       } catch (e) {
-        debugPrint("Error initializing UnifiedPush: $e");
+        debugPrint("Error initializing push messaging: $e");
       }
     }
   }

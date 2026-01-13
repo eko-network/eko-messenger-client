@@ -1,21 +1,27 @@
+import 'package:drift/drift.dart';
 import 'package:ecp/ecp.dart';
-import 'package:ecp/src/types/typedefs.dart';
 
-class InMemoryCapabilitiesStore extends CapabilitiesStore {
-  Map<String, dynamic>? _capabilites;
-  DateTime? _timestamp;
+import '../../database.dart';
+
+class DriftCapabilitiesStore extends CapabilitiesStore {
+  final AppDatabase _db;
+  DriftCapabilitiesStore(this._db);
+
+  static const int _singleRowId = 1;
 
   @override
   Future<CapabilitiesWithTime?> getCapabilities() async {
-    if (_capabilites != null && _timestamp != null) {
-      return (capabilites: _capabilites!, timestamp: _timestamp!);
-    }
-    return null;
+    final capabilites = await (_db.select(
+      _db.capabilities,
+    )..where((i) => i.id.equals(_singleRowId))).getSingleOrNull();
+    if (capabilites == null) return null;
+    return (capabilites: capabilites.capabilities, timestamp: capabilites.time);
   }
 
   @override
-  Future<void> saveCapabilities(Map<String, dynamic> capabilities) async {
-    _capabilites = capabilities;
-    _timestamp = DateTime.now();
+  Future<void> saveCapabilities(Map<String, dynamic> capabilites) async {
+    await _db
+        .into(_db.capabilities)
+        .insert(CapabilitiesCompanion(capabilities: Value(capabilites)));
   }
 }

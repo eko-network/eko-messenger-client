@@ -22,10 +22,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     if (isLoading) return;
 
-    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       isLoading = true;
     });
+    FocusManager.instance.primaryFocus?.unfocus();
 
     final auth = ref.read(authProvider);
 

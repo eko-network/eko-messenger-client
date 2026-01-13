@@ -1206,6 +1206,261 @@ class LocalIdentityCompanion extends UpdateCompanion<LocalIdentityData> {
   }
 }
 
+class $CapabilitiesTable extends Capabilities
+    with TableInfo<$CapabilitiesTable, Capability> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CapabilitiesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>, String>
+  capabilities =
+      GeneratedColumn<String>(
+        'capabilities',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Map<String, dynamic>>(
+        $CapabilitiesTable.$convertercapabilities,
+      );
+  static const VerificationMeta _timeMeta = const VerificationMeta('time');
+  @override
+  late final GeneratedColumn<DateTime> time = GeneratedColumn<DateTime>(
+    'time',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, capabilities, time];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'capabilities';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Capability> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('time')) {
+      context.handle(
+        _timeMeta,
+        time.isAcceptableOrUnknown(data['time']!, _timeMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Capability map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Capability(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      capabilities: $CapabilitiesTable.$convertercapabilities.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}capabilities'],
+        )!,
+      ),
+      time: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}time'],
+      )!,
+    );
+  }
+
+  @override
+  $CapabilitiesTable createAlias(String alias) {
+    return $CapabilitiesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Map<String, dynamic>, String> $convertercapabilities =
+      const JsonValueConverter();
+}
+
+class Capability extends DataClass implements Insertable<Capability> {
+  final int id;
+  final Map<String, dynamic> capabilities;
+  final DateTime time;
+  const Capability({
+    required this.id,
+    required this.capabilities,
+    required this.time,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    {
+      map['capabilities'] = Variable<String>(
+        $CapabilitiesTable.$convertercapabilities.toSql(capabilities),
+      );
+    }
+    map['time'] = Variable<DateTime>(time);
+    return map;
+  }
+
+  CapabilitiesCompanion toCompanion(bool nullToAbsent) {
+    return CapabilitiesCompanion(
+      id: Value(id),
+      capabilities: Value(capabilities),
+      time: Value(time),
+    );
+  }
+
+  factory Capability.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Capability(
+      id: serializer.fromJson<int>(json['id']),
+      capabilities: serializer.fromJson<Map<String, dynamic>>(
+        json['capabilities'],
+      ),
+      time: serializer.fromJson<DateTime>(json['time']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'capabilities': serializer.toJson<Map<String, dynamic>>(capabilities),
+      'time': serializer.toJson<DateTime>(time),
+    };
+  }
+
+  Capability copyWith({
+    int? id,
+    Map<String, dynamic>? capabilities,
+    DateTime? time,
+  }) => Capability(
+    id: id ?? this.id,
+    capabilities: capabilities ?? this.capabilities,
+    time: time ?? this.time,
+  );
+  Capability copyWithCompanion(CapabilitiesCompanion data) {
+    return Capability(
+      id: data.id.present ? data.id.value : this.id,
+      capabilities: data.capabilities.present
+          ? data.capabilities.value
+          : this.capabilities,
+      time: data.time.present ? data.time.value : this.time,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Capability(')
+          ..write('id: $id, ')
+          ..write('capabilities: $capabilities, ')
+          ..write('time: $time')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, capabilities, time);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Capability &&
+          other.id == this.id &&
+          other.capabilities == this.capabilities &&
+          other.time == this.time);
+}
+
+class CapabilitiesCompanion extends UpdateCompanion<Capability> {
+  final Value<int> id;
+  final Value<Map<String, dynamic>> capabilities;
+  final Value<DateTime> time;
+  const CapabilitiesCompanion({
+    this.id = const Value.absent(),
+    this.capabilities = const Value.absent(),
+    this.time = const Value.absent(),
+  });
+  CapabilitiesCompanion.insert({
+    this.id = const Value.absent(),
+    required Map<String, dynamic> capabilities,
+    this.time = const Value.absent(),
+  }) : capabilities = Value(capabilities);
+  static Insertable<Capability> custom({
+    Expression<int>? id,
+    Expression<String>? capabilities,
+    Expression<DateTime>? time,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (capabilities != null) 'capabilities': capabilities,
+      if (time != null) 'time': time,
+    });
+  }
+
+  CapabilitiesCompanion copyWith({
+    Value<int>? id,
+    Value<Map<String, dynamic>>? capabilities,
+    Value<DateTime>? time,
+  }) {
+    return CapabilitiesCompanion(
+      id: id ?? this.id,
+      capabilities: capabilities ?? this.capabilities,
+      time: time ?? this.time,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (capabilities.present) {
+      map['capabilities'] = Variable<String>(
+        $CapabilitiesTable.$convertercapabilities.toSql(capabilities.value),
+      );
+    }
+    if (time.present) {
+      map['time'] = Variable<DateTime>(time.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CapabilitiesCompanion(')
+          ..write('id: $id, ')
+          ..write('capabilities: $capabilities, ')
+          ..write('time: $time')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -2972,6 +3227,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SignedPreKeysTable signedPreKeys = $SignedPreKeysTable(this);
   late final $IdentitiesTable identities = $IdentitiesTable(this);
   late final $LocalIdentityTable localIdentity = $LocalIdentityTable(this);
+  late final $CapabilitiesTable capabilities = $CapabilitiesTable(this);
   late final $UsersTable users = $UsersTable(this);
   late final $UserDevicesTable userDevices = $UserDevicesTable(this);
   late final $AuthInfoTableTable authInfoTable = $AuthInfoTableTable(this);
@@ -2993,6 +3249,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     signedPreKeys,
     identities,
     localIdentity,
+    capabilities,
     users,
     userDevices,
     authInfoTable,
@@ -3739,6 +3996,170 @@ typedef $$LocalIdentityTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $LocalIdentityTable, LocalIdentityData>,
       ),
       LocalIdentityData,
+      PrefetchHooks Function()
+    >;
+typedef $$CapabilitiesTableCreateCompanionBuilder =
+    CapabilitiesCompanion Function({
+      Value<int> id,
+      required Map<String, dynamic> capabilities,
+      Value<DateTime> time,
+    });
+typedef $$CapabilitiesTableUpdateCompanionBuilder =
+    CapabilitiesCompanion Function({
+      Value<int> id,
+      Value<Map<String, dynamic>> capabilities,
+      Value<DateTime> time,
+    });
+
+class $$CapabilitiesTableFilterComposer
+    extends Composer<_$AppDatabase, $CapabilitiesTable> {
+  $$CapabilitiesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    Map<String, dynamic>,
+    Map<String, dynamic>,
+    String
+  >
+  get capabilities => $composableBuilder(
+    column: $table.capabilities,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<DateTime> get time => $composableBuilder(
+    column: $table.time,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CapabilitiesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CapabilitiesTable> {
+  $$CapabilitiesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get capabilities => $composableBuilder(
+    column: $table.capabilities,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get time => $composableBuilder(
+    column: $table.time,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CapabilitiesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CapabilitiesTable> {
+  $$CapabilitiesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Map<String, dynamic>, String>
+  get capabilities => $composableBuilder(
+    column: $table.capabilities,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get time =>
+      $composableBuilder(column: $table.time, builder: (column) => column);
+}
+
+class $$CapabilitiesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CapabilitiesTable,
+          Capability,
+          $$CapabilitiesTableFilterComposer,
+          $$CapabilitiesTableOrderingComposer,
+          $$CapabilitiesTableAnnotationComposer,
+          $$CapabilitiesTableCreateCompanionBuilder,
+          $$CapabilitiesTableUpdateCompanionBuilder,
+          (
+            Capability,
+            BaseReferences<_$AppDatabase, $CapabilitiesTable, Capability>,
+          ),
+          Capability,
+          PrefetchHooks Function()
+        > {
+  $$CapabilitiesTableTableManager(_$AppDatabase db, $CapabilitiesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CapabilitiesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CapabilitiesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CapabilitiesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<Map<String, dynamic>> capabilities = const Value.absent(),
+                Value<DateTime> time = const Value.absent(),
+              }) => CapabilitiesCompanion(
+                id: id,
+                capabilities: capabilities,
+                time: time,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required Map<String, dynamic> capabilities,
+                Value<DateTime> time = const Value.absent(),
+              }) => CapabilitiesCompanion.insert(
+                id: id,
+                capabilities: capabilities,
+                time: time,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CapabilitiesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CapabilitiesTable,
+      Capability,
+      $$CapabilitiesTableFilterComposer,
+      $$CapabilitiesTableOrderingComposer,
+      $$CapabilitiesTableAnnotationComposer,
+      $$CapabilitiesTableCreateCompanionBuilder,
+      $$CapabilitiesTableUpdateCompanionBuilder,
+      (
+        Capability,
+        BaseReferences<_$AppDatabase, $CapabilitiesTable, Capability>,
+      ),
+      Capability,
       PrefetchHooks Function()
     >;
 typedef $$UsersTableCreateCompanionBuilder =
@@ -5268,6 +5689,8 @@ class $AppDatabaseManager {
       $$IdentitiesTableTableManager(_db, _db.identities);
   $$LocalIdentityTableTableManager get localIdentity =>
       $$LocalIdentityTableTableManager(_db, _db.localIdentity);
+  $$CapabilitiesTableTableManager get capabilities =>
+      $$CapabilitiesTableTableManager(_db, _db.capabilities);
   $$UsersTableTableManager get users =>
       $$UsersTableTableManager(_db, _db.users);
   $$UserDevicesTableTableManager get userDevices =>
