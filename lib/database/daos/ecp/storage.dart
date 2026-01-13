@@ -6,6 +6,7 @@ import 'session_store.dart';
 import 'signed_pre_key_store.dart';
 import 'identity_key_store.dart';
 import 'user_store.dart';
+import 'capabilities_store.dart';
 
 class DriftStorage implements Storage {
   final AppDatabase _db;
@@ -25,12 +26,16 @@ class DriftStorage implements Storage {
   @override
   final UserStore userStore;
 
+  @override
+  final CapabilitiesStore capabilitiesStore;
+
   DriftStorage(this._db)
     : preKeyStore = DriftPreKeyStore(_db),
       sessionStore = DriftSessionStore(_db),
       signedPreKeyStore = DriftSignedPreKeyStore(_db),
       identityKeyStore = DriftIdentityKeyStore(_db),
-      userStore = DriftUserStore(_db);
+      userStore = DriftUserStore(_db),
+      capabilitiesStore = InMemoryCapabilitiesStore();
 
   @override
   Future<void> clear() async {
