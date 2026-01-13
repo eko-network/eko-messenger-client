@@ -33,4 +33,11 @@ class DriftUserStore extends UserStore {
           ),
         );
   }
+
+  @override
+  Future<void> deleteUser(Uri id) async {
+    await (_db.delete(
+      _db.userDevices,
+    )..where((u) => u.userId.equals(id.toString()))).go();
+  }
 }
