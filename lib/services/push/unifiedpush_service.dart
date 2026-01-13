@@ -1,44 +1,52 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:unifiedpush/unifiedpush.dart';
 import 'package:eko_messanger/services/notification_service.dart';
+import 'package:eko_messanger/services/push/push_service.dart';
 
-class UnifiedPushService {
+/// UnifiedPush implementation of MessagingProvider
+/// Supports Linux and Android platforms
+class UnifiedPushService implements PushService {
   static final UnifiedPushService _instance = UnifiedPushService._internal();
   factory UnifiedPushService() => _instance;
-  UnifiedPushService._internal();
+  UnifiedPushService._internal() {
+    // Validate platform
+    if (!Platform.isLinux && !Platform.isAndroid) {
+      throw UnsupportedError(
+        'UnifiedPush is only supported on Linux and Android platforms',
+      );
+    }
+  }
 
   final NotificationService _notificationService = NotificationService();
 
-  PushEndpoint? _endpoint;
+  MessagingEndpoint? _endpoint;
   bool _initialized = false;
   Completer<void>? _initCompleter;
 
   /// Vapid public key
   String? vapid;
 
-  /// Callback for when a new endpoint is registered
-  /// This should be used to send the endpoint to your server
-  Function(PushEndpoint endpoint)? onNewEndpoint;
+  @override
+  Function(MessagingEndpoint endpoint)? onNewEndpoint;
 
-  /// Callback for when endpoint is unregistered
+  @override
   Function()? onUnregistered;
 
-  /// Callback for when a message is received
-  /// This allows custom processing before/instead of showing notification
+  @override
   Function(String message)? onMessageReceived;
 
-  /// Callback for when registration fails
-  Function(FailedReason reason)? onRegistrationFailed;
+  @override
+  Function(String reason)? onRegistrationFailed;
 
-  /// Get the current push endpoint (if registered)
-  PushEndpoint? get endpoint => _endpoint;
+  @override
+  MessagingEndpoint? get endpoint => _endpoint;
 
-  /// Check if UnifiedPush is initialized and registered
+  @override
   bool get isRegistered => _endpoint != null;
 
-  /// Initialize UnifiedPush
-  /// Must be called before registration
+  @override
   Future<void> initialize() async {
     if (_initialized) return;
 
@@ -70,9 +78,7 @@ class UnifiedPushService {
     debugPrint('[UnifiedPush] Service initialized');
   }
 
-  /// Register with UnifiedPush
-  /// First attempts to use current or default distributor
-  /// If that fails, user needs to manually select one
+  @override
   Future<void> register() async {
     if (!_initialized) {
       await initialize();
@@ -90,37 +96,16 @@ class UnifiedPushService {
       } else {
         // No default distributor, user needs to select one
         debugPrint('[UnifiedPush] No default distributor available');
-        // Call the UI to let user choose - see selectAndRegister()
+        onRegistrationFailed?.call('No default distributor available');
       }
     } catch (e) {
       debugPrint('[UnifiedPush] Registration error: $e');
+      onRegistrationFailed?.call(e.toString());
       rethrow;
     }
   }
 
-  /// Get list of available distributors and register with selected one
-  /// This should be called if register() fails to find a default
-  // Future<void> selectAndRegister(String distributor) async {
-  //   if (!_initialized) {
-  //     await initialize();
-  //   }
-
-  //   try {
-  //     // Save the selected distributor
-  //     await UnifiedPush.saveDistributor(distributor);
-
-  //     // Register with the distributor
-  //     await UnifiedPush.register();
-  //     debugPrint(
-  //       '[UnifiedPush] Registered with selected distributor: $distributor',
-  //     );
-  //   } catch (e) {
-  //     debugPrint('[UnifiedPush] Error registering with distributor: $e');
-  //     rethrow;
-  //   }
-  // }
-
-  /// Unregister from UnifiedPush
+  @override
   Future<void> unregister() async {
     if (!_initialized) return;
 
@@ -141,9 +126,14 @@ class UnifiedPushService {
 
   // Callback handlers
 
-  void _handleNewEndpoint(PushEndpoint endpoint, String instance) {
-    debugPrint('[UnifiedPush] New endpoint: ${endpoint.url}');
-    _endpoint = endpoint;
+  void _handleNewEndpoint(PushEndpoint pushEndpoint, String instance) {
+    debugPrint('[UnifiedPush] New endpoint: ${pushEndpoint.url}');
+
+    _endpoint = MessagingEndpoint.fromUnifiedPush(
+      url: pushEndpoint.url,
+      pubKey: pushEndpoint.pubKeySet?.pubKey,
+      auth: pushEndpoint.pubKeySet?.auth,
+    );
 
     // Complete initialization if waiting
     if (_initCompleter != null && !_initCompleter!.isCompleted) {
@@ -152,7 +142,7 @@ class UnifiedPushService {
     }
 
     // Notify callback with endpoint and encryption keys
-    onNewEndpoint?.call(endpoint);
+    onNewEndpoint?.call(_endpoint!);
   }
 
   void _handleRegistrationFailed(FailedReason reason, String instance) {
@@ -168,7 +158,7 @@ class UnifiedPushService {
     }
 
     // Notify callback
-    onRegistrationFailed?.call(reason);
+    onRegistrationFailed?.call(reason.toString());
   }
 
   void _handleUnregistered(String instance) {
@@ -197,12 +187,13 @@ class UnifiedPushService {
     onMessageReceived?.call(messageText);
   }
 
-  /// Get status information for debugging
+  @override
   Map<String, dynamic> getStatus() {
     return {
+      'platform': 'unifiedpush',
       'initialized': _initialized,
       'registered': isRegistered,
-      'endpoint': _endpoint,
+      'endpoint': _endpoint?.toString(),
     };
   }
 }

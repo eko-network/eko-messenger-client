@@ -1,4 +1,5 @@
 import 'package:ecp/ecp.dart';
+import 'package:eko_messanger/database/daos/ecp/capabilities_store.dart';
 
 import '../../database.dart';
 import 'pre_key_store.dart';
@@ -35,10 +36,11 @@ class DriftStorage implements Storage {
       signedPreKeyStore = DriftSignedPreKeyStore(_db),
       identityKeyStore = DriftIdentityKeyStore(_db),
       userStore = DriftUserStore(_db),
-      capabilitiesStore = InMemoryCapabilitiesStore();
+      capabilitiesStore = DriftCapabilitiesStore(_db);
 
   @override
   Future<void> clear() async {
+    await _db.delete(_db.capabilities).go();
     await _db.delete(_db.preKeys).go();
     await _db.delete(_db.signedPreKeys).go();
     await _db.delete(_db.identities).go();

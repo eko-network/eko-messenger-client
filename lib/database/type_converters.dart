@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -41,5 +43,18 @@ class UuidValueConverter extends TypeConverter<UuidValue, String> {
   @override
   String toSql(UuidValue value) {
     return value.toString();
+  }
+}
+
+class JsonValueConverter extends TypeConverter<Map<String, dynamic>, String> {
+  const JsonValueConverter();
+  @override
+  Map<String, dynamic> fromSql(String fromDb) {
+    return jsonDecode(fromDb);
+  }
+
+  @override
+  String toSql(Map<String, dynamic> value) {
+    return jsonEncode(value);
   }
 }

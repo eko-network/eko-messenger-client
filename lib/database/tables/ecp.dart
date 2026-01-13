@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:eko_messanger/database/type_converters.dart';
 
 class Sessions extends Table {
   TextColumn get name => text()();
@@ -33,6 +34,15 @@ class Identities extends Table {
 
   @override
   Set<Column> get primaryKey => {deviceId};
+}
+
+class Capabilities extends Table {
+  IntColumn get id => integer().withDefault(const Constant(1))();
+  TextColumn get capabilities => text().map(const JsonValueConverter())();
+  DateTimeColumn get time => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 class LocalIdentity extends Table {
