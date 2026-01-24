@@ -1,6 +1,6 @@
-import 'package:eko_messanger/providers/auth.dart';
-import 'package:eko_messanger/utils/constants.dart' as c;
-import 'package:eko_messanger/widgets/maybe_card.dart';
+import 'package:eko_messenger/providers/auth.dart';
+import 'package:eko_messenger/utils/constants.dart' as c;
+import 'package:eko_messenger/widgets/maybe_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';

@@ -4,8 +4,8 @@ import 'package:drift/drift.dart';
 import 'package:ecp/auth.dart';
 import 'package:ecp/ecp.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:eko_messanger/utils/constants.dart' as c;
-import 'package:eko_messanger/database/database.dart';
+import 'package:eko_messenger/utils/constants.dart' as c;
+import 'package:eko_messenger/database/database.dart';
 
 class SecureAuthStore implements AuthStorage {
   final _storage = const FlutterSecureStorage();
@@ -28,7 +28,7 @@ class SecureAuthStore implements AuthStorage {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       expiresAt: result.expiresAt,
-      serverUrl: Uri.parse(result.serverUrl),
+      serverUrl: result.serverUrl,
       actor: Person.fromJson(jsonDecode(result.actorJson)),
     );
   }
@@ -44,7 +44,7 @@ class SecureAuthStore implements AuthStorage {
             refreshToken: tokens.refreshToken,
             expiresAt: tokens.expiresAt,
             actorJson: jsonEncode(tokens.actor.toJson()),
-            serverUrl: tokens.serverUrl.toString(),
+            serverUrl: tokens.serverUrl,
           ),
         );
   }

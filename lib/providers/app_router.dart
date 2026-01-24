@@ -1,7 +1,7 @@
-import 'package:eko_messanger/providers/auth.dart';
-import 'package:eko_messanger/screens/chat/adaptive_chat_layout.dart';
-import 'package:eko_messanger/screens/login_screen.dart';
-import 'package:eko_messanger/screens/settings.dart';
+import 'package:eko_messenger/providers/auth.dart';
+import 'package:eko_messenger/screens/chat/adaptive_chat_layout.dart';
+import 'package:eko_messenger/screens/login_screen.dart';
+import 'package:eko_messenger/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

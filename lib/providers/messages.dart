@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:ecp/ecp.dart';
-import 'package:eko_messanger/database/type_converters.dart';
-import 'package:eko_messanger/providers/database.dart';
-import 'package:eko_messanger/providers/ecp.dart';
-import 'package:eko_messanger/services/notification_service.dart';
-import 'package:eko_messanger/utils/constants.dart' as c;
+import 'package:eko_messenger/database/type_converters.dart';
+import 'package:eko_messenger/providers/database.dart';
+import 'package:eko_messenger/providers/ecp.dart';
+import 'package:eko_messenger/services/notification_service.dart';
+import 'package:eko_messenger/utils/constants.dart' as c;
 import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:eko_messanger/providers/auth.dart';
+import 'package:eko_messenger/providers/auth.dart';
 import 'package:drift/drift.dart';
-import 'package:eko_messanger/database/database.dart';
+import 'package:eko_messenger/database/database.dart';
 
 part '../generated/providers/messages.g.dart';
 

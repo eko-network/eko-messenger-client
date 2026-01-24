@@ -1,4 +1,4 @@
-import 'package:eko_messanger/providers/auth.dart';
+import 'package:eko_messenger/providers/auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:ecp/ecp.dart';
 

@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:ecp/ecp.dart';
-import 'package:eko_messanger/database/tables/contacts.dart';
+import 'package:eko_messenger/database/tables/contacts.dart';
 
 import '../database.dart';
 
@@ -17,7 +17,7 @@ class ContactsDao extends DatabaseAccessor<AppDatabase>
       preferredUsername: Value(contact.preferredUsername),
       inbox: Value(contact.inbox),
       outbox: Value(contact.outbox),
-      keyBundle: Value(contact.keyBundle),
+      devices: Value(contact.devices),
     );
     await into(contacts).insert(companion);
   }
@@ -27,7 +27,8 @@ class ContactsDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<Person?> getContactById(Uri id) {
-    return (select(contacts)..where((c) => c.id.equals(id.toString())))
-        .getSingleOrNull();
+    return (select(
+      contacts,
+    )..where((c) => c.id.equals(id.toString()))).getSingleOrNull();
   }
 }

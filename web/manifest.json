@@ -1,6 +1,6 @@
 {
-    "name": "eko_messanger",
-    "short_name": "eko_messanger",
+    "name": "eko_messenger",
+    "short_name": "eko_messenger",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

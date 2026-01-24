@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:eko_messanger/database/daos/conversations_dao.dart';
-import 'package:eko_messanger/database/database.dart';
-import 'package:eko_messanger/providers/database.dart';
-import 'package:eko_messanger/providers/ecp.dart';
-import 'package:eko_messanger/screens/chat/adaptive_chat_layout.dart';
-import 'package:eko_messanger/widgets/resizable_panel.dart';
+import 'package:eko_messenger/database/daos/conversations_dao.dart';
+import 'package:eko_messenger/database/database.dart';
+import 'package:eko_messenger/providers/database.dart';
+import 'package:eko_messenger/providers/ecp.dart';
+import 'package:eko_messenger/screens/chat/adaptive_chat_layout.dart';
+import 'package:eko_messenger/widgets/resizable_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

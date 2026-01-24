@@ -1,4 +1,5 @@
 .env
+result
 android/build/
 .direnv/
 firebase.json

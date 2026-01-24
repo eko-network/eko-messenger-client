@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'package:eko_messanger/providers/ecp.dart';
-import 'package:eko_messanger/providers/messages.dart';
+import 'package:eko_messenger/providers/ecp.dart';
+import 'package:eko_messenger/providers/messages.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:eko_messanger/services/push/push_service.dart';
-import 'package:eko_messanger/services/push/unifiedpush_service.dart';
-import 'package:eko_messanger/services/push/apn_service.dart';
-import 'package:eko_messanger/services/push/null_push_service.dart';
+import 'package:eko_messenger/services/push/push_service.dart';
+import 'package:eko_messenger/services/push/unifiedpush_service.dart';
+import 'package:eko_messenger/services/push/apn_service.dart';
+import 'package:eko_messenger/services/push/null_push_service.dart';
 
 part '../generated/providers/push.g.dart';
 

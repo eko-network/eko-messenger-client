@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:eko_messanger/services/push/push_service.dart';
+import 'package:eko_messenger/services/push/push_service.dart';
 
 /// Null implementation of MessagingProvider for unsupported platforms
 /// Used on macOS and Windows where push notifications are not implemented

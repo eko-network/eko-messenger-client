@@ -1,4 +1,4 @@
-import 'package:eko_messanger/database/database.dart';
+import 'package:eko_messenger/database/database.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part '../generated/providers/database.g.dart';

@@ -1,5 +1,5 @@
 import 'package:ecp/ecp.dart';
-import 'package:eko_messanger/database/daos/ecp/capabilities_store.dart';
+import 'package:eko_messenger/database/daos/ecp/capabilities_store.dart';
 
 import '../../database.dart';
 import 'pre_key_store.dart';
@@ -7,7 +7,6 @@ import 'session_store.dart';
 import 'signed_pre_key_store.dart';
 import 'identity_key_store.dart';
 import 'user_store.dart';
-import 'capabilities_store.dart';
 
 class DriftStorage implements Storage {
   final AppDatabase _db;

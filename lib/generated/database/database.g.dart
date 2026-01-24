@@ -1466,15 +1466,15 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UsersTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
+  late final GeneratedColumnWithTypeConverter<Uri, String> id =
+      GeneratedColumn<String>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Uri>($UsersTable.$converterid);
   @override
   List<GeneratedColumn> get $columns => [id];
   @override
@@ -1483,30 +1483,17 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   String get actualTableName => $name;
   static const String $name = 'users';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<User> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    return context;
-  }
-
-  @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   User map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return User(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
+      id: $UsersTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
     );
   }
 
@@ -1514,15 +1501,19 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   $UsersTable createAlias(String alias) {
     return $UsersTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<Uri, String> $converterid = const UriTypeConverter();
 }
 
 class User extends DataClass implements Insertable<User> {
-  final String id;
+  final Uri id;
   const User({required this.id});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
+    {
+      map['id'] = Variable<String>($UsersTable.$converterid.toSql(id));
+    }
     return map;
   }
 
@@ -1535,15 +1526,15 @@ class User extends DataClass implements Insertable<User> {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return User(id: serializer.fromJson<String>(json['id']));
+    return User(id: serializer.fromJson<Uri>(json['id']));
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{'id': serializer.toJson<String>(id)};
+    return <String, dynamic>{'id': serializer.toJson<Uri>(id)};
   }
 
-  User copyWith({String? id}) => User(id: id ?? this.id);
+  User copyWith({Uri? id}) => User(id: id ?? this.id);
   User copyWithCompanion(UsersCompanion data) {
     return User(id: data.id.present ? data.id.value : this.id);
   }
@@ -1564,13 +1555,13 @@ class User extends DataClass implements Insertable<User> {
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
-  final Value<String> id;
+  final Value<Uri> id;
   final Value<int> rowid;
   const UsersCompanion({
     this.id = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  UsersCompanion.insert({required String id, this.rowid = const Value.absent()})
+  UsersCompanion.insert({required Uri id, this.rowid = const Value.absent()})
     : id = Value(id);
   static Insertable<User> custom({
     Expression<String>? id,
@@ -1582,7 +1573,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     });
   }
 
-  UsersCompanion copyWith({Value<String>? id, Value<int>? rowid}) {
+  UsersCompanion copyWith({Value<Uri>? id, Value<int>? rowid}) {
     return UsersCompanion(id: id ?? this.id, rowid: rowid ?? this.rowid);
   }
 
@@ -1590,7 +1581,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<String>(id.value);
+      map['id'] = Variable<String>($UsersTable.$converterid.toSql(id.value));
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1627,29 +1618,28 @@ class $UserDevicesTable extends UserDevices
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-    'user_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES users (id)',
-    ),
-  );
-  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
-    'deviceId',
-  );
+  late final GeneratedColumnWithTypeConverter<Uri, String> userId =
+      GeneratedColumn<String>(
+        'user_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id)',
+        ),
+      ).withConverter<Uri>($UserDevicesTable.$converteruserId);
   @override
-  late final GeneratedColumn<int> deviceId = GeneratedColumn<int>(
-    'device_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
+  late final GeneratedColumnWithTypeConverter<Uri, String> deviceId =
+      GeneratedColumn<String>(
+        'device_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      ).withConverter<Uri>($UserDevicesTable.$converterdeviceId);
   @override
   List<GeneratedColumn> get $columns => [id, userId, deviceId];
   @override
@@ -1667,22 +1657,6 @@ class $UserDevicesTable extends UserDevices
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('user_id')) {
-      context.handle(
-        _userIdMeta,
-        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('device_id')) {
-      context.handle(
-        _deviceIdMeta,
-        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_deviceIdMeta);
-    }
     return context;
   }
 
@@ -1696,14 +1670,18 @@ class $UserDevicesTable extends UserDevices
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      userId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}user_id'],
-      )!,
-      deviceId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}device_id'],
-      )!,
+      userId: $UserDevicesTable.$converteruserId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}user_id'],
+        )!,
+      ),
+      deviceId: $UserDevicesTable.$converterdeviceId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}device_id'],
+        )!,
+      ),
     );
   }
 
@@ -1711,12 +1689,16 @@ class $UserDevicesTable extends UserDevices
   $UserDevicesTable createAlias(String alias) {
     return $UserDevicesTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<Uri, String> $converteruserId = const UriTypeConverter();
+  static TypeConverter<Uri, String> $converterdeviceId =
+      const UriTypeConverter();
 }
 
 class UserDevice extends DataClass implements Insertable<UserDevice> {
   final int id;
-  final String userId;
-  final int deviceId;
+  final Uri userId;
+  final Uri deviceId;
   const UserDevice({
     required this.id,
     required this.userId,
@@ -1726,8 +1708,16 @@ class UserDevice extends DataClass implements Insertable<UserDevice> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['user_id'] = Variable<String>(userId);
-    map['device_id'] = Variable<int>(deviceId);
+    {
+      map['user_id'] = Variable<String>(
+        $UserDevicesTable.$converteruserId.toSql(userId),
+      );
+    }
+    {
+      map['device_id'] = Variable<String>(
+        $UserDevicesTable.$converterdeviceId.toSql(deviceId),
+      );
+    }
     return map;
   }
 
@@ -1746,8 +1736,8 @@ class UserDevice extends DataClass implements Insertable<UserDevice> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserDevice(
       id: serializer.fromJson<int>(json['id']),
-      userId: serializer.fromJson<String>(json['userId']),
-      deviceId: serializer.fromJson<int>(json['deviceId']),
+      userId: serializer.fromJson<Uri>(json['userId']),
+      deviceId: serializer.fromJson<Uri>(json['deviceId']),
     );
   }
   @override
@@ -1755,12 +1745,12 @@ class UserDevice extends DataClass implements Insertable<UserDevice> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'userId': serializer.toJson<String>(userId),
-      'deviceId': serializer.toJson<int>(deviceId),
+      'userId': serializer.toJson<Uri>(userId),
+      'deviceId': serializer.toJson<Uri>(deviceId),
     };
   }
 
-  UserDevice copyWith({int? id, String? userId, int? deviceId}) => UserDevice(
+  UserDevice copyWith({int? id, Uri? userId, Uri? deviceId}) => UserDevice(
     id: id ?? this.id,
     userId: userId ?? this.userId,
     deviceId: deviceId ?? this.deviceId,
@@ -1796,8 +1786,8 @@ class UserDevice extends DataClass implements Insertable<UserDevice> {
 
 class UserDevicesCompanion extends UpdateCompanion<UserDevice> {
   final Value<int> id;
-  final Value<String> userId;
-  final Value<int> deviceId;
+  final Value<Uri> userId;
+  final Value<Uri> deviceId;
   const UserDevicesCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
@@ -1805,14 +1795,14 @@ class UserDevicesCompanion extends UpdateCompanion<UserDevice> {
   });
   UserDevicesCompanion.insert({
     this.id = const Value.absent(),
-    required String userId,
-    required int deviceId,
+    required Uri userId,
+    required Uri deviceId,
   }) : userId = Value(userId),
        deviceId = Value(deviceId);
   static Insertable<UserDevice> custom({
     Expression<int>? id,
     Expression<String>? userId,
-    Expression<int>? deviceId,
+    Expression<String>? deviceId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1823,8 +1813,8 @@ class UserDevicesCompanion extends UpdateCompanion<UserDevice> {
 
   UserDevicesCompanion copyWith({
     Value<int>? id,
-    Value<String>? userId,
-    Value<int>? deviceId,
+    Value<Uri>? userId,
+    Value<Uri>? deviceId,
   }) {
     return UserDevicesCompanion(
       id: id ?? this.id,
@@ -1840,10 +1830,14 @@ class UserDevicesCompanion extends UpdateCompanion<UserDevice> {
       map['id'] = Variable<int>(id.value);
     }
     if (userId.present) {
-      map['user_id'] = Variable<String>(userId.value);
+      map['user_id'] = Variable<String>(
+        $UserDevicesTable.$converteruserId.toSql(userId.value),
+      );
     }
     if (deviceId.present) {
-      map['device_id'] = Variable<int>(deviceId.value);
+      map['device_id'] = Variable<String>(
+        $UserDevicesTable.$converterdeviceId.toSql(deviceId.value),
+      );
     }
     return map;
   }
@@ -1875,15 +1869,15 @@ class $AuthInfoTableTable extends AuthInfoTable
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
-  static const VerificationMeta _didMeta = const VerificationMeta('did');
   @override
-  late final GeneratedColumn<int> did = GeneratedColumn<int>(
-    'did',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
+  late final GeneratedColumnWithTypeConverter<Uri, String> did =
+      GeneratedColumn<String>(
+        'did',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Uri>($AuthInfoTableTable.$converterdid);
   static const VerificationMeta _accessTokenMeta = const VerificationMeta(
     'accessToken',
   );
@@ -1928,17 +1922,15 @@ class $AuthInfoTableTable extends AuthInfoTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _serverUrlMeta = const VerificationMeta(
-    'serverUrl',
-  );
   @override
-  late final GeneratedColumn<String> serverUrl = GeneratedColumn<String>(
-    'server_url',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
+  late final GeneratedColumnWithTypeConverter<Uri, String> serverUrl =
+      GeneratedColumn<String>(
+        'server_url',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Uri>($AuthInfoTableTable.$converterserverUrl);
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1963,14 +1955,6 @@ class $AuthInfoTableTable extends AuthInfoTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('did')) {
-      context.handle(
-        _didMeta,
-        did.isAcceptableOrUnknown(data['did']!, _didMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_didMeta);
     }
     if (data.containsKey('access_token')) {
       context.handle(
@@ -2010,14 +1994,6 @@ class $AuthInfoTableTable extends AuthInfoTable
     } else if (isInserting) {
       context.missing(_actorJsonMeta);
     }
-    if (data.containsKey('server_url')) {
-      context.handle(
-        _serverUrlMeta,
-        serverUrl.isAcceptableOrUnknown(data['server_url']!, _serverUrlMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_serverUrlMeta);
-    }
     return context;
   }
 
@@ -2031,10 +2007,12 @@ class $AuthInfoTableTable extends AuthInfoTable
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      did: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}did'],
-      )!,
+      did: $AuthInfoTableTable.$converterdid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}did'],
+        )!,
+      ),
       accessToken: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}access_token'],
@@ -2051,10 +2029,12 @@ class $AuthInfoTableTable extends AuthInfoTable
         DriftSqlType.string,
         data['${effectivePrefix}actor_json'],
       )!,
-      serverUrl: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}server_url'],
-      )!,
+      serverUrl: $AuthInfoTableTable.$converterserverUrl.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}server_url'],
+        )!,
+      ),
     );
   }
 
@@ -2062,17 +2042,21 @@ class $AuthInfoTableTable extends AuthInfoTable
   $AuthInfoTableTable createAlias(String alias) {
     return $AuthInfoTableTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<Uri, String> $converterdid = const UriTypeConverter();
+  static TypeConverter<Uri, String> $converterserverUrl =
+      const UriTypeConverter();
 }
 
 class AuthInfoTableData extends DataClass
     implements Insertable<AuthInfoTableData> {
   final int id;
-  final int did;
+  final Uri did;
   final String accessToken;
   final String refreshToken;
   final DateTime expiresAt;
   final String actorJson;
-  final String serverUrl;
+  final Uri serverUrl;
   const AuthInfoTableData({
     required this.id,
     required this.did,
@@ -2086,12 +2070,20 @@ class AuthInfoTableData extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['did'] = Variable<int>(did);
+    {
+      map['did'] = Variable<String>(
+        $AuthInfoTableTable.$converterdid.toSql(did),
+      );
+    }
     map['access_token'] = Variable<String>(accessToken);
     map['refresh_token'] = Variable<String>(refreshToken);
     map['expires_at'] = Variable<DateTime>(expiresAt);
     map['actor_json'] = Variable<String>(actorJson);
-    map['server_url'] = Variable<String>(serverUrl);
+    {
+      map['server_url'] = Variable<String>(
+        $AuthInfoTableTable.$converterserverUrl.toSql(serverUrl),
+      );
+    }
     return map;
   }
 
@@ -2114,12 +2106,12 @@ class AuthInfoTableData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AuthInfoTableData(
       id: serializer.fromJson<int>(json['id']),
-      did: serializer.fromJson<int>(json['did']),
+      did: serializer.fromJson<Uri>(json['did']),
       accessToken: serializer.fromJson<String>(json['accessToken']),
       refreshToken: serializer.fromJson<String>(json['refreshToken']),
       expiresAt: serializer.fromJson<DateTime>(json['expiresAt']),
       actorJson: serializer.fromJson<String>(json['actorJson']),
-      serverUrl: serializer.fromJson<String>(json['serverUrl']),
+      serverUrl: serializer.fromJson<Uri>(json['serverUrl']),
     );
   }
   @override
@@ -2127,23 +2119,23 @@ class AuthInfoTableData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'did': serializer.toJson<int>(did),
+      'did': serializer.toJson<Uri>(did),
       'accessToken': serializer.toJson<String>(accessToken),
       'refreshToken': serializer.toJson<String>(refreshToken),
       'expiresAt': serializer.toJson<DateTime>(expiresAt),
       'actorJson': serializer.toJson<String>(actorJson),
-      'serverUrl': serializer.toJson<String>(serverUrl),
+      'serverUrl': serializer.toJson<Uri>(serverUrl),
     };
   }
 
   AuthInfoTableData copyWith({
     int? id,
-    int? did,
+    Uri? did,
     String? accessToken,
     String? refreshToken,
     DateTime? expiresAt,
     String? actorJson,
-    String? serverUrl,
+    Uri? serverUrl,
   }) => AuthInfoTableData(
     id: id ?? this.id,
     did: did ?? this.did,
@@ -2208,12 +2200,12 @@ class AuthInfoTableData extends DataClass
 
 class AuthInfoTableCompanion extends UpdateCompanion<AuthInfoTableData> {
   final Value<int> id;
-  final Value<int> did;
+  final Value<Uri> did;
   final Value<String> accessToken;
   final Value<String> refreshToken;
   final Value<DateTime> expiresAt;
   final Value<String> actorJson;
-  final Value<String> serverUrl;
+  final Value<Uri> serverUrl;
   const AuthInfoTableCompanion({
     this.id = const Value.absent(),
     this.did = const Value.absent(),
@@ -2225,12 +2217,12 @@ class AuthInfoTableCompanion extends UpdateCompanion<AuthInfoTableData> {
   });
   AuthInfoTableCompanion.insert({
     this.id = const Value.absent(),
-    required int did,
+    required Uri did,
     required String accessToken,
     required String refreshToken,
     required DateTime expiresAt,
     required String actorJson,
-    required String serverUrl,
+    required Uri serverUrl,
   }) : did = Value(did),
        accessToken = Value(accessToken),
        refreshToken = Value(refreshToken),
@@ -2239,7 +2231,7 @@ class AuthInfoTableCompanion extends UpdateCompanion<AuthInfoTableData> {
        serverUrl = Value(serverUrl);
   static Insertable<AuthInfoTableData> custom({
     Expression<int>? id,
-    Expression<int>? did,
+    Expression<String>? did,
     Expression<String>? accessToken,
     Expression<String>? refreshToken,
     Expression<DateTime>? expiresAt,
@@ -2259,12 +2251,12 @@ class AuthInfoTableCompanion extends UpdateCompanion<AuthInfoTableData> {
 
   AuthInfoTableCompanion copyWith({
     Value<int>? id,
-    Value<int>? did,
+    Value<Uri>? did,
     Value<String>? accessToken,
     Value<String>? refreshToken,
     Value<DateTime>? expiresAt,
     Value<String>? actorJson,
-    Value<String>? serverUrl,
+    Value<Uri>? serverUrl,
   }) {
     return AuthInfoTableCompanion(
       id: id ?? this.id,
@@ -2284,7 +2276,9 @@ class AuthInfoTableCompanion extends UpdateCompanion<AuthInfoTableData> {
       map['id'] = Variable<int>(id.value);
     }
     if (did.present) {
-      map['did'] = Variable<int>(did.value);
+      map['did'] = Variable<String>(
+        $AuthInfoTableTable.$converterdid.toSql(did.value),
+      );
     }
     if (accessToken.present) {
       map['access_token'] = Variable<String>(accessToken.value);
@@ -2299,7 +2293,9 @@ class AuthInfoTableCompanion extends UpdateCompanion<AuthInfoTableData> {
       map['actor_json'] = Variable<String>(actorJson.value);
     }
     if (serverUrl.present) {
-      map['server_url'] = Variable<String>(serverUrl.value);
+      map['server_url'] = Variable<String>(
+        $AuthInfoTableTable.$converterserverUrl.toSql(serverUrl.value),
+      );
     }
     return map;
   }
@@ -2820,21 +2816,21 @@ class $ContactsTable extends Contacts with TableInfo<$ContactsTable, Person> {
         requiredDuringInsert: true,
       ).withConverter<Uri>($ContactsTable.$converteroutbox);
   @override
-  late final GeneratedColumnWithTypeConverter<Uri, String> keyBundle =
+  late final GeneratedColumnWithTypeConverter<Uri, String> devices =
       GeneratedColumn<String>(
-        'key_bundle',
+        'devices',
         aliasedName,
         false,
         type: DriftSqlType.string,
         requiredDuringInsert: true,
-      ).withConverter<Uri>($ContactsTable.$converterkeyBundle);
+      ).withConverter<Uri>($ContactsTable.$converterdevices);
   @override
   List<GeneratedColumn> get $columns => [
     id,
     preferredUsername,
     inbox,
     outbox,
-    keyBundle,
+    devices,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2886,10 +2882,10 @@ class $ContactsTable extends Contacts with TableInfo<$ContactsTable, Person> {
           data['${effectivePrefix}outbox'],
         )!,
       ),
-      keyBundle: $ContactsTable.$converterkeyBundle.fromSql(
+      devices: $ContactsTable.$converterdevices.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
-          data['${effectivePrefix}key_bundle'],
+          data['${effectivePrefix}devices'],
         )!,
       ),
       preferredUsername: attachedDatabase.typeMapping.read(
@@ -2907,7 +2903,7 @@ class $ContactsTable extends Contacts with TableInfo<$ContactsTable, Person> {
   static TypeConverter<Uri, String> $converterid = const UriTypeConverter();
   static TypeConverter<Uri, String> $converterinbox = const UriTypeConverter();
   static TypeConverter<Uri, String> $converteroutbox = const UriTypeConverter();
-  static TypeConverter<Uri, String> $converterkeyBundle =
+  static TypeConverter<Uri, String> $converterdevices =
       const UriTypeConverter();
 }
 
@@ -2916,14 +2912,14 @@ class ContactsCompanion extends UpdateCompanion<Person> {
   final Value<String> preferredUsername;
   final Value<Uri> inbox;
   final Value<Uri> outbox;
-  final Value<Uri> keyBundle;
+  final Value<Uri> devices;
   final Value<int> rowid;
   const ContactsCompanion({
     this.id = const Value.absent(),
     this.preferredUsername = const Value.absent(),
     this.inbox = const Value.absent(),
     this.outbox = const Value.absent(),
-    this.keyBundle = const Value.absent(),
+    this.devices = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ContactsCompanion.insert({
@@ -2931,19 +2927,19 @@ class ContactsCompanion extends UpdateCompanion<Person> {
     required String preferredUsername,
     required Uri inbox,
     required Uri outbox,
-    required Uri keyBundle,
+    required Uri devices,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        preferredUsername = Value(preferredUsername),
        inbox = Value(inbox),
        outbox = Value(outbox),
-       keyBundle = Value(keyBundle);
+       devices = Value(devices);
   static Insertable<Person> custom({
     Expression<String>? id,
     Expression<String>? preferredUsername,
     Expression<String>? inbox,
     Expression<String>? outbox,
-    Expression<String>? keyBundle,
+    Expression<String>? devices,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2951,7 +2947,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
       if (preferredUsername != null) 'preferred_username': preferredUsername,
       if (inbox != null) 'inbox': inbox,
       if (outbox != null) 'outbox': outbox,
-      if (keyBundle != null) 'key_bundle': keyBundle,
+      if (devices != null) 'devices': devices,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2961,7 +2957,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
     Value<String>? preferredUsername,
     Value<Uri>? inbox,
     Value<Uri>? outbox,
-    Value<Uri>? keyBundle,
+    Value<Uri>? devices,
     Value<int>? rowid,
   }) {
     return ContactsCompanion(
@@ -2969,7 +2965,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
       preferredUsername: preferredUsername ?? this.preferredUsername,
       inbox: inbox ?? this.inbox,
       outbox: outbox ?? this.outbox,
-      keyBundle: keyBundle ?? this.keyBundle,
+      devices: devices ?? this.devices,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2993,9 +2989,9 @@ class ContactsCompanion extends UpdateCompanion<Person> {
         $ContactsTable.$converteroutbox.toSql(outbox.value),
       );
     }
-    if (keyBundle.present) {
-      map['key_bundle'] = Variable<String>(
-        $ContactsTable.$converterkeyBundle.toSql(keyBundle.value),
+    if (devices.present) {
+      map['devices'] = Variable<String>(
+        $ContactsTable.$converterdevices.toSql(devices.value),
       );
     }
     if (rowid.present) {
@@ -3011,7 +3007,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
           ..write('preferredUsername: $preferredUsername, ')
           ..write('inbox: $inbox, ')
           ..write('outbox: $outbox, ')
-          ..write('keyBundle: $keyBundle, ')
+          ..write('devices: $devices, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3234,6 +3230,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MessagesTable messages = $MessagesTable(this);
   late final $ContactsTable contacts = $ContactsTable(this);
   late final $ConversationsTable conversations = $ConversationsTable(this);
+  late final Index idxDeviceId = Index(
+    'idx_device_id',
+    'CREATE INDEX idx_device_id ON user_devices (device_id)',
+  );
   late final MessagesDao messagesDao = MessagesDao(this as AppDatabase);
   late final ContactsDao contactsDao = ContactsDao(this as AppDatabase);
   late final ConversationsDao conversationsDao = ConversationsDao(
@@ -3256,6 +3256,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     messages,
     contacts,
     conversations,
+    idxDeviceId,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4163,9 +4164,9 @@ typedef $$CapabilitiesTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$UsersTableCreateCompanionBuilder =
-    UsersCompanion Function({required String id, Value<int> rowid});
+    UsersCompanion Function({required Uri id, Value<int> rowid});
 typedef $$UsersTableUpdateCompanionBuilder =
-    UsersCompanion Function({Value<String> id, Value<int> rowid});
+    UsersCompanion Function({Value<Uri> id, Value<int> rowid});
 
 final class $$UsersTableReferences
     extends BaseReferences<_$AppDatabase, $UsersTable, User> {
@@ -4198,9 +4199,9 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get id => $composableBuilder(
+  ColumnWithTypeConverterFilters<Uri, Uri, String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   Expression<bool> userDevicesRefs(
@@ -4253,7 +4254,7 @@ class $$UsersTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get id =>
+  GeneratedColumnWithTypeConverter<Uri, String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   Expression<T> userDevicesRefs<T extends Object>(
@@ -4310,11 +4311,11 @@ class $$UsersTableTableManager
               $$UsersTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<String> id = const Value.absent(),
+                Value<Uri> id = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion(id: id, rowid: rowid),
           createCompanionCallback:
-              ({required String id, Value<int> rowid = const Value.absent()}) =>
+              ({required Uri id, Value<int> rowid = const Value.absent()}) =>
                   UsersCompanion.insert(id: id, rowid: rowid),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4365,14 +4366,14 @@ typedef $$UsersTableProcessedTableManager =
 typedef $$UserDevicesTableCreateCompanionBuilder =
     UserDevicesCompanion Function({
       Value<int> id,
-      required String userId,
-      required int deviceId,
+      required Uri userId,
+      required Uri deviceId,
     });
 typedef $$UserDevicesTableUpdateCompanionBuilder =
     UserDevicesCompanion Function({
       Value<int> id,
-      Value<String> userId,
-      Value<int> deviceId,
+      Value<Uri> userId,
+      Value<Uri> deviceId,
     });
 
 final class $$UserDevicesTableReferences
@@ -4412,10 +4413,11 @@ class $$UserDevicesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get deviceId => $composableBuilder(
-    column: $table.deviceId,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Uri, Uri, String> get deviceId =>
+      $composableBuilder(
+        column: $table.deviceId,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   $$UsersTableFilterComposer get userId {
     final $$UsersTableFilterComposer composer = $composerBuilder(
@@ -4455,7 +4457,7 @@ class $$UserDevicesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get deviceId => $composableBuilder(
+  ColumnOrderings<String> get deviceId => $composableBuilder(
     column: $table.deviceId,
     builder: (column) => ColumnOrderings(column),
   );
@@ -4496,7 +4498,7 @@ class $$UserDevicesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get deviceId =>
+  GeneratedColumnWithTypeConverter<Uri, String> get deviceId =>
       $composableBuilder(column: $table.deviceId, builder: (column) => column);
 
   $$UsersTableAnnotationComposer get userId {
@@ -4552,8 +4554,8 @@ class $$UserDevicesTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<String> userId = const Value.absent(),
-                Value<int> deviceId = const Value.absent(),
+                Value<Uri> userId = const Value.absent(),
+                Value<Uri> deviceId = const Value.absent(),
               }) => UserDevicesCompanion(
                 id: id,
                 userId: userId,
@@ -4562,8 +4564,8 @@ class $$UserDevicesTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required String userId,
-                required int deviceId,
+                required Uri userId,
+                required Uri deviceId,
               }) => UserDevicesCompanion.insert(
                 id: id,
                 userId: userId,
@@ -4639,22 +4641,22 @@ typedef $$UserDevicesTableProcessedTableManager =
 typedef $$AuthInfoTableTableCreateCompanionBuilder =
     AuthInfoTableCompanion Function({
       Value<int> id,
-      required int did,
+      required Uri did,
       required String accessToken,
       required String refreshToken,
       required DateTime expiresAt,
       required String actorJson,
-      required String serverUrl,
+      required Uri serverUrl,
     });
 typedef $$AuthInfoTableTableUpdateCompanionBuilder =
     AuthInfoTableCompanion Function({
       Value<int> id,
-      Value<int> did,
+      Value<Uri> did,
       Value<String> accessToken,
       Value<String> refreshToken,
       Value<DateTime> expiresAt,
       Value<String> actorJson,
-      Value<String> serverUrl,
+      Value<Uri> serverUrl,
     });
 
 class $$AuthInfoTableTableFilterComposer
@@ -4671,10 +4673,11 @@ class $$AuthInfoTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get did => $composableBuilder(
-    column: $table.did,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Uri, Uri, String> get did =>
+      $composableBuilder(
+        column: $table.did,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<String> get accessToken => $composableBuilder(
     column: $table.accessToken,
@@ -4696,10 +4699,11 @@ class $$AuthInfoTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get serverUrl => $composableBuilder(
-    column: $table.serverUrl,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Uri, Uri, String> get serverUrl =>
+      $composableBuilder(
+        column: $table.serverUrl,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$AuthInfoTableTableOrderingComposer
@@ -4716,7 +4720,7 @@ class $$AuthInfoTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get did => $composableBuilder(
+  ColumnOrderings<String> get did => $composableBuilder(
     column: $table.did,
     builder: (column) => ColumnOrderings(column),
   );
@@ -4759,7 +4763,7 @@ class $$AuthInfoTableTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get did =>
+  GeneratedColumnWithTypeConverter<Uri, String> get did =>
       $composableBuilder(column: $table.did, builder: (column) => column);
 
   GeneratedColumn<String> get accessToken => $composableBuilder(
@@ -4778,7 +4782,7 @@ class $$AuthInfoTableTableAnnotationComposer
   GeneratedColumn<String> get actorJson =>
       $composableBuilder(column: $table.actorJson, builder: (column) => column);
 
-  GeneratedColumn<String> get serverUrl =>
+  GeneratedColumnWithTypeConverter<Uri, String> get serverUrl =>
       $composableBuilder(column: $table.serverUrl, builder: (column) => column);
 }
 
@@ -4818,12 +4822,12 @@ class $$AuthInfoTableTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> did = const Value.absent(),
+                Value<Uri> did = const Value.absent(),
                 Value<String> accessToken = const Value.absent(),
                 Value<String> refreshToken = const Value.absent(),
                 Value<DateTime> expiresAt = const Value.absent(),
                 Value<String> actorJson = const Value.absent(),
-                Value<String> serverUrl = const Value.absent(),
+                Value<Uri> serverUrl = const Value.absent(),
               }) => AuthInfoTableCompanion(
                 id: id,
                 did: did,
@@ -4836,12 +4840,12 @@ class $$AuthInfoTableTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required int did,
+                required Uri did,
                 required String accessToken,
                 required String refreshToken,
                 required DateTime expiresAt,
                 required String actorJson,
-                required String serverUrl,
+                required Uri serverUrl,
               }) => AuthInfoTableCompanion.insert(
                 id: id,
                 did: did,
@@ -5118,7 +5122,7 @@ typedef $$ContactsTableCreateCompanionBuilder =
       required String preferredUsername,
       required Uri inbox,
       required Uri outbox,
-      required Uri keyBundle,
+      required Uri devices,
       Value<int> rowid,
     });
 typedef $$ContactsTableUpdateCompanionBuilder =
@@ -5127,7 +5131,7 @@ typedef $$ContactsTableUpdateCompanionBuilder =
       Value<String> preferredUsername,
       Value<Uri> inbox,
       Value<Uri> outbox,
-      Value<Uri> keyBundle,
+      Value<Uri> devices,
       Value<int> rowid,
     });
 
@@ -5188,9 +5192,9 @@ class $$ContactsTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
-  ColumnWithTypeConverterFilters<Uri, Uri, String> get keyBundle =>
+  ColumnWithTypeConverterFilters<Uri, Uri, String> get devices =>
       $composableBuilder(
-        column: $table.keyBundle,
+        column: $table.devices,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
@@ -5249,8 +5253,8 @@ class $$ContactsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get keyBundle => $composableBuilder(
-    column: $table.keyBundle,
+  ColumnOrderings<String> get devices => $composableBuilder(
+    column: $table.devices,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -5278,8 +5282,8 @@ class $$ContactsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<Uri, String> get outbox =>
       $composableBuilder(column: $table.outbox, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<Uri, String> get keyBundle =>
-      $composableBuilder(column: $table.keyBundle, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<Uri, String> get devices =>
+      $composableBuilder(column: $table.devices, builder: (column) => column);
 
   Expression<T> conversationsRefs<T extends Object>(
     Expression<T> Function($$ConversationsTableAnnotationComposer a) f,
@@ -5339,14 +5343,14 @@ class $$ContactsTableTableManager
                 Value<String> preferredUsername = const Value.absent(),
                 Value<Uri> inbox = const Value.absent(),
                 Value<Uri> outbox = const Value.absent(),
-                Value<Uri> keyBundle = const Value.absent(),
+                Value<Uri> devices = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ContactsCompanion(
                 id: id,
                 preferredUsername: preferredUsername,
                 inbox: inbox,
                 outbox: outbox,
-                keyBundle: keyBundle,
+                devices: devices,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5355,14 +5359,14 @@ class $$ContactsTableTableManager
                 required String preferredUsername,
                 required Uri inbox,
                 required Uri outbox,
-                required Uri keyBundle,
+                required Uri devices,
                 Value<int> rowid = const Value.absent(),
               }) => ContactsCompanion.insert(
                 id: id,
                 preferredUsername: preferredUsername,
                 inbox: inbox,
                 outbox: outbox,
-                keyBundle: keyBundle,
+                devices: devices,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:eko_messanger/database/type_converters.dart';
+import 'package:eko_messenger/database/type_converters.dart';
 
 class Messages extends Table {
   TextColumn get id => text().map(const UuidValueConverter())();

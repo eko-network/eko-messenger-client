@@ -1,11 +1,11 @@
 import 'package:ecp/ecp.dart';
-import 'package:eko_messanger/database/daos/conversations_dao.dart';
-import 'package:eko_messanger/database/database.dart';
-import 'package:eko_messanger/database/type_converters.dart';
-import 'package:eko_messanger/providers/auth.dart';
-import 'package:eko_messanger/providers/database.dart';
-import 'package:eko_messanger/providers/ecp.dart';
-import 'package:eko_messanger/utils/constants.dart' as c;
+import 'package:eko_messenger/database/daos/conversations_dao.dart';
+import 'package:eko_messenger/database/database.dart';
+import 'package:eko_messenger/database/type_converters.dart';
+import 'package:eko_messenger/providers/auth.dart';
+import 'package:eko_messenger/providers/database.dart';
+import 'package:eko_messenger/providers/ecp.dart';
+import 'package:eko_messenger/utils/constants.dart' as c;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

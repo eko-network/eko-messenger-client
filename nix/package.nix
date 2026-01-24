@@ -11,7 +11,7 @@
   '';
 in
   pkgs.flutter.buildFlutterApplication {
-    pname = "eko-messenger";
+    pname = "eko_messenger";
     version = "0.1.0";
 
     src = lib.cleanSource ../.;
@@ -20,7 +20,7 @@ in
     autoPubspecLock = ../pubspec.lock;
 
     gitHashes = {
-      ecp = "sha256-YSo7U3egR6Brb5KqUls+ryUU+ysmarIaYcrYWU9e2hs=";
+      ecp = "sha256-QF6VV7hx3s9efDa76PNkMKKAY9jJ0+XT0+q3ZK6GUso=";
     };
 
     buildInputs = with pkgs; [
@@ -34,6 +34,7 @@ in
     nativeBuildInputs = with pkgs; [
       pkg-config
       wrapGAppsHook3
+      copyDesktopItems
     ];
 
     # Override the build to use CMake toolchain
@@ -48,11 +49,29 @@ in
       runHook postBuild
     '';
 
+    postInstall = ''
+      for size in 16 32 64 128 256 512; do
+        install -Dm644 "macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_$size.png" \
+           "$out/share/icons/hicolor/''${size}x$size/apps/eko-messenger.png"
+       done
+    '';
+
+    desktopItems = [
+      (pkgs.makeDesktopItem {
+        name = "eko-messenger";
+        exec = "eko_messenger";
+        icon = "eko-messenger";
+        desktopName = "Eko Messenger";
+        comment = "An E2EE messaging application";
+        categories = ["Network" "InstantMessaging"];
+      })
+    ];
+
     meta = with lib; {
       description = "Eko Messenger - Secure messaging application";
       homepage = "https://github.com/erreeves/eko-messenger-client";
-      license = licenses.unfree;
+      license = licenses.mit;
       platforms = platforms.linux;
-      mainProgram = "eko_messanger";
+      mainProgram = "eko_messenger";
     };
   }

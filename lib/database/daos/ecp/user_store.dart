@@ -9,35 +9,42 @@ class DriftUserStore extends UserStore {
   DriftUserStore(this._db);
 
   @override
-  Future<List<int>?> getUser(Uri id) async {
+  Future<Map<Uri, int>?> getUser(Uri id) async {
     final result = await (_db.select(
       _db.userDevices,
     )..where((u) => u.userId.equals(id.toString()))).get();
     if (result.isEmpty) {
       return null;
     }
-    return result.map((d) => d.deviceId).toList();
+    return {for (final v in result) v.deviceId: v.id};
   }
 
   @override
-  Future<void> saveUser(Uri id, int did) async {
+  Future<int> saveDevice(Uri id, Uri did) async {
     await _db
         .into(_db.users)
-        .insertOnConflictUpdate(UsersCompanion(id: Value(id.toString())));
-    await _db
+        .insertOnConflictUpdate(UsersCompanion(id: Value(id)));
+    return await _db
         .into(_db.userDevices)
         .insertOnConflictUpdate(
-          UserDevicesCompanion(
-            userId: Value(id.toString()),
-            deviceId: Value(did),
-          ),
+          UserDevicesCompanion(userId: Value(id), deviceId: Value(did)),
         );
   }
 
   @override
-  Future<void> deleteUser(Uri id) async {
-    await (_db.delete(
-      _db.userDevices,
-    )..where((u) => u.userId.equals(id.toString()))).go();
+  Future<int?> removeDevice(Uri did) async {
+    final ret = await getDevice(did);
+    if (ret != null) {
+      await (_db.delete(_db.userDevices)..where((u) => u.id.equals(ret))).go();
+    }
+    return ret;
+  }
+
+  @override
+  Future<int?> getDevice(Uri did) async {
+    final query = _db.select(_db.userDevices)
+      ..where((u) => u.deviceId.equals(did.toString()));
+
+    return (await query.getSingleOrNull())?.id;
   }
 }

@@ -1,4 +1,4 @@
-import 'package:eko_messanger/utils/constants.dart' as c;
+import 'package:eko_messenger/utils/constants.dart' as c;
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 

@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:ecp/ecp.dart';
-import 'package:eko_messanger/database/tables/contacts.dart';
-import 'package:eko_messanger/database/tables/conversations.dart';
+import 'package:eko_messenger/database/tables/contacts.dart';
+import 'package:eko_messenger/database/tables/conversations.dart';
 
 import '../database.dart';
 
@@ -11,10 +11,7 @@ class ConversationWithContact {
   final Conversation conversation;
   final Person contact;
 
-  ConversationWithContact({
-    required this.conversation,
-    required this.contact,
-  });
+  ConversationWithContact({required this.conversation, required this.contact});
 }
 
 @DriftAccessor(tables: [Conversations, Contacts])
@@ -33,23 +30,15 @@ class ConversationsDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<ConversationWithContact>> getConversationsWithContact() {
-    return (select(conversations)
-          ..orderBy(
-            [
-              (u) => OrderingTerm(
-                    expression: u.id,
-                    mode: OrderingMode.desc,
-                  )
-            ],
-          ))
-        .join(
-          [
-            leftOuterJoin(
-              contacts,
-              contacts.id.equalsExp(conversations.participant),
-            )
-          ],
-        )
+    return (select(conversations)..orderBy([
+          (u) => OrderingTerm(expression: u.id, mode: OrderingMode.desc),
+        ]))
+        .join([
+          leftOuterJoin(
+            contacts,
+            contacts.id.equalsExp(conversations.participant),
+          ),
+        ])
         .get()
         .then((value) {
           return value.map((row) {
@@ -62,28 +51,20 @@ class ConversationsDao extends DatabaseAccessor<AppDatabase>
   }
 
   Stream<List<ConversationWithContact>> watchConversationsWithContact() {
-    return (select(conversations)
-          ..orderBy(
-            [
-              (u) => OrderingTerm(
-                    expression: u.id,
-                    mode: OrderingMode.desc,
-                  )
-            ],
-          ))
-        .join(
-          [
-            leftOuterJoin(
-              contacts,
-              contacts.id.equalsExp(conversations.participant),
-            )
-          ],
-        )
+    return (select(conversations)..orderBy([
+          (u) => OrderingTerm(expression: u.id, mode: OrderingMode.desc),
+        ]))
+        .join([
+          leftOuterJoin(
+            contacts,
+            contacts.id.equalsExp(conversations.participant),
+          ),
+        ])
         .watch()
         .map((rows) {
           return rows.map((row) {
             return ConversationWithContact(
-              conversation: row.readTable( conversations),
+              conversation: row.readTable(conversations),
               contact: row.readTable(contacts),
             );
           }).toList();

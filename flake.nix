@@ -9,17 +9,19 @@
     nixpkgs,
     flake-utils,
   }:
-    flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import nixpkgs {
+    flake-utils.lib.eachSystem ["x86_64-linux"] (system: let
+      devPkgs = import nixpkgs {
         inherit system;
         config = {
           android_sdk.accept_license = true;
           allowUnfree = true;
         };
       };
+
+      pkgs = import nixpkgs {inherit system;};
     in {
-      devShell = import ./nix/devshell.nix {inherit pkgs;};
-      
+      devShells.default = import ./nix/devshell.nix {pkgs = devPkgs;};
+
       packages.default = pkgs.callPackage ./nix/package.nix {};
     });
 }

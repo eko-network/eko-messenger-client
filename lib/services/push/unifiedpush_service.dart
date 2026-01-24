@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:unifiedpush/unifiedpush.dart';
-import 'package:eko_messanger/services/notification_service.dart';
-import 'package:eko_messanger/services/push/push_service.dart';
+import 'package:eko_messenger/services/notification_service.dart';
+import 'package:eko_messenger/services/push/push_service.dart';
 
 /// UnifiedPush implementation of MessagingProvider
 /// Supports Linux and Android platforms

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:eko_messanger/services/push/push_service.dart';
+import 'package:eko_messenger/services/push/push_service.dart';
 
 /// Apple Push Notification (APN) implementation of MessagingProvider
 ///

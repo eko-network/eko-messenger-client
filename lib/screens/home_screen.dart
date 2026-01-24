@@ -1,5 +1,5 @@
-import 'package:eko_messanger/providers/auth.dart';
-import 'package:eko_messanger/widgets/side_bar.dart';
+import 'package:eko_messenger/providers/auth.dart';
+import 'package:eko_messenger/widgets/side_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

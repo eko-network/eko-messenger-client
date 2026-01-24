@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:eko_messanger/database/tables/contacts.dart';
-import 'package:eko_messanger/database/type_converters.dart';
+import 'package:eko_messenger/database/tables/contacts.dart';
+import 'package:eko_messenger/database/type_converters.dart';
 
 class Conversations extends Table {
   TextColumn get participant => text()
