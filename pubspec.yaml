@@ -2,7 +2,7 @@ name: eko_messenger
 description: "A new Flutter project."
 publish_to:
 
-version: 1.0.0+1
+version: 0.0.1+1
 
 environment:
   sdk: ^3.9.2
@@ -19,7 +19,7 @@ dependencies:
   ecp:
     git:
       url: https://github.com/eko-network/ecp-dart-sdk
-      ref: e0f8cfef872200494203b7c8d2040aaf42430e60
+      ref: e048ae8a015d2d1c54d47b0bcddf67fcf0af6790
   flutter_secure_storage: ^9.2.4
   path_provider: ^2.1.5
   drift: ^2.28.2

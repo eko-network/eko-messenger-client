@@ -17,6 +17,22 @@ class Push extends _$Push {
     // Create platform-specific messaging service
     final service = _createPlatformService();
 
+    // Set VAPID key from server capabilities if using UnifiedPush
+    if (service is UnifiedPushService) {
+      final ecpClient = ref.read(ecpProvider);
+      final vapidKey = ecpClient.capabilities.webPush?.vapidPublicKey;
+      if (vapidKey != null) {
+        service.vapid = vapidKey;
+        debugPrint(
+          '[Messaging Provider] VAPID key set from server capabilities',
+        );
+      } else {
+        debugPrint(
+          '[Messaging Provider] Warning: No VAPID key in server capabilities',
+        );
+      }
+    }
+
     service.onNewEndpoint = (MessagingEndpoint endpoint) async {
       debugPrint('[Messaging Provider] New endpoint received: $endpoint');
 
