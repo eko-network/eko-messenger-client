@@ -50,15 +50,13 @@ in
     '';
 
     postInstall = ''
-      for size in 16 32 64 128 256 512; do
-        install -Dm644 "macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_$size.png" \
-           "$out/share/icons/hicolor/''${size}x$size/apps/eko-messenger.png"
-       done
+      install -Dm644 "linux/assets/icon.svg" \
+       "$out/share/icons/hicolor/scalable/apps/eko-messenger.svg"
     '';
 
     desktopItems = [
       (pkgs.makeDesktopItem {
-        name = "eko-messenger";
+        name = "com.eko.eko_messenger";
         exec = "eko_messenger";
         icon = "eko-messenger";
         desktopName = "Eko Messenger";
