@@ -40,7 +40,7 @@ final class PushProvider extends $NotifierProvider<Push, PushService> {
   }
 }
 
-String _$pushHash() => r'0e525f64e45e1d07ebd2a88a8c0b1640597054e4';
+String _$pushHash() => r'92bd06f5fdf71b27da7c22bf8f982ec22af88c05';
 
 abstract class _$Push extends $Notifier<PushService> {
   PushService build();

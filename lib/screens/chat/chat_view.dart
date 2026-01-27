@@ -6,11 +6,19 @@ import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/database.dart';
 import 'package:eko_messenger/providers/ecp.dart';
 import 'package:eko_messenger/utils/constants.dart' as c;
+import 'package:eko_messenger/widgets/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:uuid/uuid.dart';
+
+extension SafeLookup<T> on List<T> {
+  T? getOrNull(int index) {
+    if (index < 0 || index >= length) return null;
+    return this[index];
+  }
+}
 
 class ChatView extends ConsumerStatefulWidget {
   final ConversationWithContact conversation;
@@ -25,6 +33,11 @@ class ChatView extends ConsumerStatefulWidget {
 class _ChatViewState extends ConsumerState<ChatView> {
   final TextEditingController _messageController = TextEditingController();
   final _uuid = Uuid();
+  Stream<List<Message>>? _messagesStream;
+  Uri? _lastActorId;
+  Uri? _lastContactId;
+  AppDatabase? _lastDb;
+
   @override
   void dispose() {
     _messageController.dispose();
@@ -73,10 +86,63 @@ class _ChatViewState extends ConsumerState<ChatView> {
     }
   }
 
+  MessagePosition _determinePosition(
+    DateTime? prev,
+    DateTime me,
+    DateTime? next,
+  ) {
+    final tolerance = Duration(minutes: 1);
+
+    bool hasPrev = prev != null && me.difference(prev).abs() <= tolerance;
+
+    bool hasNext = next != null && next.difference(me).abs() <= tolerance;
+
+    if (hasPrev && hasNext) {
+      return MessagePosition.middle;
+    } else if (hasPrev) {
+      return MessagePosition.bottom;
+    } else if (hasNext) {
+      return MessagePosition.top;
+    } else {
+      return MessagePosition.single;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final db = ref.watch(appDatabaseProvider);
     final authInfo = ref.watch(authProvider).info;
+
+    if (authInfo == null) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: widget.onBack != null
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: widget.onBack,
+                )
+              : null,
+          title: Text(widget.conversation.contact.preferredUsername),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final actorId = authInfo.actor.id;
+    final contactId = widget.conversation.contact.id;
+
+    if (_messagesStream == null ||
+        _lastActorId != actorId ||
+        _lastContactId != contactId ||
+        _lastDb != db) {
+      _lastActorId = actorId;
+      _lastContactId = contactId;
+      _lastDb = db;
+      _messagesStream = db.messagesDao.watchMessagesForConversation(
+        contactId,
+        actorId,
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -110,10 +176,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
         children: [
           Expanded(
             child: StreamBuilder<List<Message>>(
-              stream: db.messagesDao.watchMessagesForConversation(
-                widget.conversation.contact.id,
-                authInfo!.actor.id,
-              ),
+              stream: _messagesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -131,119 +194,122 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 final messages = snapshot.data!;
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
+                  reverse: true,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    final message = messages[index];
+                    final int chronoIndex = messages.length - 1 - index;
+                    final message = messages[chronoIndex];
                     final isReceived = message.from != authInfo.actor.id;
-                    return _buildMessage(
-                      // FIXME
-                      message.content ?? "No content",
-                      isReceived,
-                      context,
-                      message.status,
+
+                    final prevMsg = messages.getOrNull(chronoIndex - 1);
+                    final nextMsg = messages.getOrNull(chronoIndex + 1);
+
+                    // These are only for grouping
+                    final DateTime? prevTime = (prevMsg?.from == message.from)
+                        ? prevMsg?.time
+                        : null;
+                    final DateTime? nextTime = (nextMsg?.from == message.from)
+                        ? nextMsg?.time
+                        : null;
+
+                    bool isFirstOfDate = false;
+
+                    if (prevMsg == null) {
+                      isFirstOfDate = true;
+                    } else {
+                      final d1 = message.time;
+                      final d2 = prevMsg.time;
+                      isFirstOfDate =
+                          d1.year != d2.year ||
+                          d1.month != d2.month ||
+                          d1.day != d2.day;
+                    }
+
+                    final messageWidget = MessageWidget(
+                      isReceived: isReceived,
+                      message: message,
+                      position: _determinePosition(
+                        prevTime,
+                        message.time,
+                        nextTime,
+                      ),
                     );
+
+                    if (isFirstOfDate) {
+                      return Column(
+                        children: [
+                          DateChip(time: message.time),
+                          messageWidget,
+                        ],
+                      );
+                    }
+                    return messageWidget;
                   },
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxHeight:
-                          12 * 24.0, // 12 lines * approximate line height
-                    ),
-                    child: CallbackShortcuts(
-                      bindings: {
-                        const SingleActivator(LogicalKeyboardKey.enter):
-                            _sendMessage,
-                      },
-                      child: TextField(
-                        controller: _messageController,
-                        maxLines: null,
-                        minLines: 1,
-                        keyboardType: TextInputType.multiline,
-                        // onSubmitted: (_) => _sendMessage(),
-                        decoration: InputDecoration(
-                          hintText: 'Type a message...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide.none,
-                          ),
-                          fillColor: ShadTheme.of(
-                            context,
-                          ).colorScheme.custom[c.grayMessageColorKey],
-                          filled: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxHeight:
+                            12 * 24.0, // 12 lines * approximate line height
+                      ),
+                      child: CallbackShortcuts(
+                        bindings: {
+                          const SingleActivator(LogicalKeyboardKey.enter):
+                              _sendMessage,
+                        },
+                        child: TextField(
+                          controller: _messageController,
+                          maxLines: null,
+                          minLines: 1,
+                          textCapitalization: TextCapitalization.sentences,
+                          keyboardType: TextInputType.multiline,
+                          decoration: InputDecoration(
+                            hintText: 'Type a message...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide.none,
+                            ),
+                            fillColor: ShadTheme.of(
+                              context,
+                            ).colorScheme.custom[c.grayMessageColorKey],
+                            filled: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: ShadTheme.of(
-                    context,
-                  ).colorScheme.custom[c.primaryColorKey],
-                  child: IconButton(
-                    icon: const Icon(
-                      LucideIcons.send,
-                      color: Colors.white,
-                      size: 20,
+                  const SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: ShadTheme.of(
+                      context,
+                    ).colorScheme.custom[c.primaryColorKey],
+                    child: IconButton(
+                      icon: const Icon(
+                        LucideIcons.send,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: _sendMessage,
                     ),
-                    onPressed: _sendMessage,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMessage(
-    String text,
-    bool isReceived,
-    BuildContext context,
-    MessageStatus status,
-  ) {
-    return Align(
-      alignment: isReceived ? Alignment.centerLeft : Alignment.centerRight,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: ShadTheme.of(context)
-              .colorScheme
-              .custom[isReceived ? c.grayMessageColorKey : c.primaryColorKey],
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(text, style: const TextStyle(color: Colors.white)),
-            ),
-            if (!isReceived) ...[
-              const SizedBox(width: 8),
-              Icon(
-                status == MessageStatus.sending
-                    ? LucideIcons.clock
-                    : LucideIcons.check,
-                size: 14,
-                color: Colors.white70,
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

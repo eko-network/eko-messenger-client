@@ -1,3 +1,6 @@
+#include <filesystem> 
+using namespace std;
+using namespace std::filesystem;
 #include "my_application.h"
 
 #include <flutter_linux/flutter_linux.h>
@@ -25,7 +28,23 @@ static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
-
+  // Set window icon
+  const string iconFilename = "branding/logo.png";
+  path execDir = canonical(read_symlink("/proc/self/exe")).parent_path();
+  path iconPath = execDir / "data/flutter_assets" / iconFilename;
+  
+  GError* icon_error = nullptr;
+  GdkPixbuf* icon_pixbuf = gdk_pixbuf_new_from_file(iconPath.c_str(), &icon_error);
+  if (icon_pixbuf) {
+    gtk_window_set_icon(GTK_WINDOW(window), icon_pixbuf);
+    // Also set as default icon for all windows
+    gtk_window_set_default_icon(icon_pixbuf);
+    g_object_unref(icon_pixbuf);
+  } else {
+    g_warning("Failed to load window icon from %s: %s", iconPath.c_str(), icon_error ? icon_error->message : "unknown error");
+    if (icon_error) g_error_free(icon_error);
+  }
+  
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
   // desktop).
