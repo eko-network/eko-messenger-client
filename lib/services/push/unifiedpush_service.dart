@@ -24,6 +24,7 @@ class UnifiedPushService implements PushService {
   MessagingEndpoint? _endpoint;
   bool _initialized = false;
   Completer<void>? _initCompleter;
+  Completer<void>? _endpointCompleter;
 
   /// Vapid public key
   String? vapid;
@@ -48,7 +49,10 @@ class UnifiedPushService implements PushService {
 
   @override
   Future<void> initialize() async {
-    if (_initialized) return;
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+    _initCompleter = Completer<void>();
 
     await _notificationService.initialize();
 
@@ -65,9 +69,9 @@ class UnifiedPushService implements PushService {
 
     // If already registered, wait for the endpoint callback to complete
     if (alreadyRegistered && _endpoint == null) {
-      _initCompleter = Completer<void>();
+      _endpointCompleter = Completer<void>();
       debugPrint('[UnifiedPush] Already registered, waiting for endpoint...');
-      await _initCompleter!.future.timeout(
+      await _endpointCompleter!.future.timeout(
         const Duration(seconds: 5),
         onTimeout: () {
           debugPrint('[UnifiedPush] Timeout waiting for endpoint');
@@ -76,6 +80,7 @@ class UnifiedPushService implements PushService {
     }
 
     debugPrint('[UnifiedPush] Service initialized');
+    _initCompleter!.complete();
   }
 
   @override
@@ -129,6 +134,15 @@ class UnifiedPushService implements PushService {
   void _handleNewEndpoint(PushEndpoint pushEndpoint, String instance) {
     debugPrint('[UnifiedPush] New endpoint: ${pushEndpoint.url}');
 
+    if (_endpoint?.url == pushEndpoint.url) {
+      debugPrint('[UnifiedPush] Ignoring duplicate endpoint');
+      if (_endpointCompleter != null && !_endpointCompleter!.isCompleted) {
+        _endpointCompleter!.complete();
+        _endpointCompleter = null;
+      }
+      return;
+    }
+
     _endpoint = MessagingEndpoint.fromUnifiedPush(
       url: pushEndpoint.url,
       pubKey: pushEndpoint.pubKeySet?.pubKey,
@@ -136,9 +150,9 @@ class UnifiedPushService implements PushService {
     );
 
     // Complete initialization if waiting
-    if (_initCompleter != null && !_initCompleter!.isCompleted) {
-      _initCompleter!.complete();
-      _initCompleter = null;
+    if (_endpointCompleter != null && !_endpointCompleter!.isCompleted) {
+      _endpointCompleter!.complete();
+      _endpointCompleter = null;
     }
 
     // Notify callback with endpoint and encryption keys
@@ -152,9 +166,9 @@ class UnifiedPushService implements PushService {
     _endpoint = null;
 
     // Complete initialization if waiting
-    if (_initCompleter != null && !_initCompleter!.isCompleted) {
-      _initCompleter!.complete();
-      _initCompleter = null;
+    if (_endpointCompleter != null && !_endpointCompleter!.isCompleted) {
+      _endpointCompleter!.complete();
+      _endpointCompleter = null;
     }
 
     // Notify callback
