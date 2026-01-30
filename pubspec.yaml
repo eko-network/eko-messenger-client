@@ -20,7 +20,7 @@ dependencies:
     # path: ../ecp-dart-sdk
     git:
       url: https://github.com/eko-network/ecp-dart-sdk
-      ref: e048ae8a015d2d1c54d47b0bcddf67fcf0af6790
+      ref: 95b7bd7e87788ed5890f78d850241706d43edbf8
   flutter_secure_storage: ^9.2.4
   path_provider: ^2.1.5
   drift: ^2.28.2
@@ -36,6 +36,7 @@ dependencies:
   unifiedpush: ^6.2.0
   package_info_plus: ^9.0.0
   intl: ^0.20.2
+  characters: ^1.4.0
 
 dev_dependencies:
   drift_dev: ^2.28.0
@@ -48,8 +49,18 @@ dev_dependencies:
 flutter:
 
   uses-material-design: true
-  assets:
-    - branding/logo.png
+  # assets:
+  #   - branding/logo.png
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
+        - asset: assets/fonts/Inter-Italic.ttf
+
+    - family: NotoEmoji
+      fonts:
+        - asset: assets/fonts/NotoColorEmoji.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:
