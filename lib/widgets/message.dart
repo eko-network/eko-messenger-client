@@ -6,6 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+bool _isShortEmojiString(String text) {
+  const maxLen = 5;
+  final glyphs = text.characters;
+  if (glyphs.isEmpty || glyphs.length > maxLen) {
+    return false;
+  }
+  final emojiRegex = RegExp(
+    r'^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$',
+  );
+  return glyphs.every((char) => emojiRegex.hasMatch(char));
+}
+
 class DateChip extends ConsumerWidget {
   final DateTime time;
   const DateChip({super.key, required this.time});
@@ -28,7 +40,7 @@ class DateChip extends ConsumerWidget {
     } else {
       text = DateFormat('E, MMM d').format(time);
     }
-    return Text(text, style: TextStyle(fontWeight: FontWeight.w100));
+    return Text(text, style: TextStyle(fontWeight: FontWeight.w300));
   }
 }
 
@@ -50,7 +62,7 @@ class TimeWidget extends ConsumerWidget {
     }
     return Text(
       text,
-      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w100),
+      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w300),
     );
   }
 }
@@ -126,9 +138,19 @@ class MessageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    final backgroundColor = isReceived
-        ? theme.colorScheme.custom[c.grayMessageColorKey]
-        : theme.colorScheme.custom[c.primaryColorKey];
+    final isShortEmojiString = message.content != null
+        ? _isShortEmojiString(message.content!)
+        : false;
+
+    final Color backgroundColor;
+
+    if (isShortEmojiString) {
+      backgroundColor = Colors.transparent;
+    } else {
+      backgroundColor = isReceived
+          ? theme.colorScheme.custom[c.grayMessageColorKey]!
+          : theme.colorScheme.custom[c.primaryColorKey]!;
+    }
     final isBottom =
         position == MessagePosition.single ||
         position == MessagePosition.bottom;
@@ -146,21 +168,36 @@ class MessageWidget extends StatelessWidget {
           color: backgroundColor,
           borderRadius: _posToBorder(position, isReceived),
         ),
-        child: Wrap(
-          alignment: WrapAlignment.end,
-          crossAxisAlignment: WrapCrossAlignment.end,
-          runAlignment: WrapAlignment.end,
-          spacing: 8, // Horizontal space between text and icon
-          runSpacing: 4, // Vertical space if the icon wraps to a new line
-          children: [
-            Text(
-              message.content ?? "No content",
-              style: const TextStyle(color: Colors.white),
-            ),
-            if (isBottom)
-              StatusWidget(message: message, isReceived: isReceived),
-          ],
-        ),
+        child: isShortEmojiString
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: isReceived
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    message.content ?? "No content",
+                    style: const TextStyle(fontSize: 32, color: Colors.white),
+                  ),
+                  if (isBottom)
+                    StatusWidget(message: message, isReceived: isReceived),
+                ],
+              )
+            : Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.end,
+                runAlignment: WrapAlignment.end,
+                spacing: 8, // Horizontal space between text and icon
+                runSpacing: 4, // Vertical space if the icon wraps to a new line
+                children: [
+                  Text(
+                    message.content ?? "No content",
+                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                  ),
+                  if (isBottom)
+                    StatusWidget(message: message, isReceived: isReceived),
+                ],
+              ),
       ),
     );
   }

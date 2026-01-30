@@ -52,7 +52,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
     final authInfo = ref.read(authProvider).info;
     if (authInfo == null) return;
     final activity = Create(
-      base: ActivityBase(id: _uuid.v4obj()),
+      base: ActivityBase(id: _uuid.v4obj(), to: widget.conversation.contact.id),
       object: Note(
         content: text,
         base: ObjectBase(id: _uuid.v4obj()),
