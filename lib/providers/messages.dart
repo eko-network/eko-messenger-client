@@ -128,6 +128,7 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
     bool notifiableOverride = false,
   }) async {
     debugPrint('Processing message: ${activity.toString()}');
+    final me = ref.read(ecpProvider).me;
 
     final notifiable =
         c.isDesktop && isDesktopNotifiyEligiable || notifiableOverride;
@@ -138,31 +139,37 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
         switch (create.object) {
           case Note note:
             final db = ref.read(appDatabaseProvider);
-            final from = activity.from;
+
+            final Uri otherParty;
+            if (me.id == activity.from) {
+              otherParty = create.base.to;
+            } else {
+              otherParty = activity.from;
+            }
 
             // Ensure contact exists
-            var contact = await db.contactsDao.getContactById(from);
+            var contact = await db.contactsDao.getContactById(otherParty);
             if (contact == null) {
               try {
-                final person = await ref.read(ecpProvider).getActor(from);
+                final person = await ref.read(ecpProvider).getActor(otherParty);
                 await db.contactsDao.insertNewContact(person);
                 contact = person;
               } catch (e) {
-                debugPrint('Could not fetch remote actor $from: $e');
+                debugPrint('Could not fetch remote actor $otherParty: $e');
                 return; // Skip if we can't get actor details
               }
             }
 
             // Ensure conversation exists
             final conversation = await db.conversationsDao
-                .getConversationByParticipant(from);
+                .getConversationByParticipant(otherParty);
             if (conversation == null) {
               await db.conversationsDao.insertNewConversation(
-                ConversationsCompanion(participant: Value(from)),
+                ConversationsCompanion(participant: Value(otherParty)),
               );
             }
             debugPrint("Processed message, notifiable: $notifiable");
-            if (notifiable) {
+            if (notifiable && me.id != activity.from) {
               // TODO discard malformed objects
               _notificationService.showNewMessageNotification(
                 from: contact.preferredUsername,
@@ -172,7 +179,7 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
             await db.messagesDao.insertNewMessage(
               Message(
                 id: note.base.id,
-                to: activity.to.first,
+                to: create.base.to,
                 from: activity.from,
                 time: DateTime.now(),
                 content: note.content,

@@ -12,10 +12,17 @@ bool _isShortEmojiString(String text) {
   if (glyphs.isEmpty || glyphs.length > maxLen) {
     return false;
   }
+
   final emojiRegex = RegExp(
-    r'^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$',
+    r'^(\p{Emoji_Presentation}|\p{Emoji}\u200d|\p{Emoji}\ufe0f|[\u{1f3fb}-\u{1f3ff}]|\p{Emoji_Modifier_Base})+$',
+    unicode: true,
   );
-  return glyphs.every((char) => emojiRegex.hasMatch(char));
+  return glyphs.every((char) {
+    final isBasic = RegExp(r'^[a-zA-Z0-9\s#*]+$').hasMatch(char);
+    if (isBasic) return false;
+    final isEmoji = emojiRegex.hasMatch(char);
+    return isEmoji;
+  });
 }
 
 class DateChip extends ConsumerWidget {
