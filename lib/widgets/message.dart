@@ -9,20 +9,16 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 bool _isShortEmojiString(String text) {
   const maxLen = 5;
   final glyphs = text.characters;
+
   if (glyphs.isEmpty || glyphs.length > maxLen) {
     return false;
   }
 
-  final emojiRegex = RegExp(
-    r'^(\p{Emoji_Presentation}|\p{Emoji}\u200d|\p{Emoji}\ufe0f|[\u{1f3fb}-\u{1f3ff}]|\p{Emoji_Modifier_Base})+$',
-    unicode: true,
-  );
-  return glyphs.every((char) {
-    final isBasic = RegExp(r'^[a-zA-Z0-9\s#*]+$').hasMatch(char);
-    if (isBasic) return false;
-    final isEmoji = emojiRegex.hasMatch(char);
-    return isEmoji;
-  });
+  if (RegExp(r'[a-zA-Z0-9\p{L}\p{N}\p{P}]', unicode: true).hasMatch(text)) {
+    return false;
+  }
+
+  return text.trim().isNotEmpty;
 }
 
 class DateChip extends ConsumerWidget {
