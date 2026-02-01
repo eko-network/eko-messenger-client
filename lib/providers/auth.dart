@@ -14,12 +14,14 @@ import 'package:ecp/ecp.dart';
 part '../generated/providers/auth.g.dart';
 
 class AuthNotifier extends ChangeNotifier {
-  AuthNotifier(this._auth, this._db, this._ref);
+  AuthNotifier(this._auth, this._authStore, this._db, this._ref);
 
   final Auth _auth;
+  final SecureAuthStore _authStore;
   final AppDatabase _db;
   final Ref _ref;
   EcpClient? _ecpClient;
+  bool _isLoggingOut = false;
 
   bool get isAuthenticated => _auth.isAuthenticated;
   EcpClient? get ecpClient => _ecpClient;
@@ -36,14 +38,25 @@ class AuthNotifier extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    _ecpClient = null;
-    await _auth
-        .logout(); // This clears auth & ECP storage (users, sessions, keys, etc.)
-    // Clear app-specific data not handled by auth.logout()
-    await _db.delete(_db.messages).go();
-    await _db.delete(_db.conversations).go();
-    await _db.delete(_db.contacts).go();
-    notifyListeners();
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
+    
+    try {
+      _ecpClient = null;
+      
+      // Clear app-specific data not handled by auth.logout()
+      await _db.delete(_db.messages).go();
+      await _db.delete(_db.conversations).go();
+      await _db.delete(_db.contacts).go();
+      
+      await _auth.logout();
+      
+      await _authStore.clearDatabasePassword();
+      
+      notifyListeners();
+    } finally {
+      _isLoggingOut = false;
+    }
   }
 
   Future<void> initialize() async {
@@ -98,13 +111,24 @@ class AuthNotifier extends ChangeNotifier {
 AuthNotifier auth(Ref ref) {
   final deviceName = ref.watch(deviceNameProvider);
   final db = ref.read(appDatabaseProvider);
-  return AuthNotifier(
+  final authStore = SecureAuthStore(db);
+  
+  late final AuthNotifier authNotifier;
+  
+  authNotifier = AuthNotifier(
     Auth(
-      SecureAuthStore(db),
+      authStore,
       ecpStorage: DriftStorage(db),
       deviceName: deviceName,
+      onSessionExpired: () {
+        debugPrint('Session expired callback triggered - logging out');
+        authNotifier.logout();
+      },
     ),
+    authStore,
     db,
     ref,
   );
+  
+  return authNotifier;
 }

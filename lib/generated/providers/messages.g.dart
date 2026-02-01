@@ -41,7 +41,7 @@ final class MessagePollingProvider
   }
 }
 
-String _$messagePollingHash() => r'3e2a4fab831b8ba1d1b7dba56980b4a8277beae7';
+String _$messagePollingHash() => r'3bae2409bc6604628a013e0c4401e43222752b72';
 
 abstract class _$MessagePolling extends $Notifier<void> {
   void build();
