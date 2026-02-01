@@ -20,7 +20,7 @@ dependencies:
     # path: ../ecp-dart-sdk
     git:
       url: https://github.com/eko-network/ecp-dart-sdk
-      ref: 95b7bd7e87788ed5890f78d850241706d43edbf8
+      ref: 6c7e9db808213e1c2973d135c3168a6e8ffd9f78
   flutter_secure_storage: ^9.2.4
   path_provider: ^2.1.5
   drift: ^2.28.2

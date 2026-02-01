@@ -293,8 +293,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "95b7bd7e87788ed5890f78d850241706d43edbf8"
-      resolved-ref: "95b7bd7e87788ed5890f78d850241706d43edbf8"
+      ref: "6c7e9db808213e1c2973d135c3168a6e8ffd9f78"
+      resolved-ref: "6c7e9db808213e1c2973d135c3168a6e8ffd9f78"
       url: "https://github.com/eko-network/ecp-dart-sdk"
     source: git
     version: "0.0.1"
