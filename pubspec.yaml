@@ -2,7 +2,7 @@ name: eko_messenger
 description: "A new Flutter project."
 publish_to:
 
-version: 0.0.5+5
+version: 0.0.6+6
 
 environment:
   sdk: ^3.9.2
@@ -56,8 +56,8 @@ flutter:
   fonts:
     - family: Inter
       fonts:
-        - asset: assets/fonts/Inter.ttf
-        - asset: assets/fonts/Inter-Italic.ttf
+        - asset: assets/fonts/Inter-Cleaned.ttf
+        - asset: assets/fonts/Inter-Italic-Cleaned.ttf
 
     - family: NotoEmoji
       fonts:
