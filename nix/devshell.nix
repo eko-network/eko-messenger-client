@@ -10,6 +10,7 @@
   };
   androidSdk = androidComposition.androidsdk;
 
+  sdkPath = "${androidSdk}/libexec/android-sdk";
   cmakeToolchain = pkgs.writeText "nix-toolchain.cmake" ''
     set(OPENSSL_SSL_LIBRARY "${pkgs.openssl.out}/lib/libssl.so" CACHE FILEPATH "OpenSSL SSL library" FORCE)
     set(CMAKE_PREFIX_PATH "${pkgs.openssl.out};${pkgs.openssl.dev};''${CMAKE_PREFIX_PATH}" CACHE STRING "CMake prefix path" FORCE)
@@ -17,8 +18,8 @@
   '';
 in
   pkgs.mkShell {
-    ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
-    ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
+    ANDROID_SDK_ROOT = sdkPath;
+    ANDROID_HOME = sdkPath;
 
     nativeBuildInputs = with pkgs; [
       dart
@@ -39,5 +40,6 @@ in
 
     shellHook = ''
       export CMAKE_TOOLCHAIN_FILE="${cmakeToolchain}"
+      export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkPath}/build-tools/35.0.0/aapt2"
     '';
   }
