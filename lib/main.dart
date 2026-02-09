@@ -39,7 +39,7 @@ class MyApp extends ConsumerWidget {
     ref.watch(messagePollingProvider);
 
     final router = ref.watch(routerProvider);
-    return ShadApp.custom(
+    return ShadApp.router(
       themeMode: ThemeMode.dark,
       darkTheme: ShadThemeData(
         textTheme: ShadTextTheme(family: "Inter"),
@@ -51,21 +51,7 @@ class MyApp extends ConsumerWidget {
           },
         ),
       ),
-      appBuilder: (context) {
-        return MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          theme: Theme.of(context).copyWith(
-            textTheme: Theme.of(context).textTheme.apply(
-              fontFamily: "Inter",
-              // Flutter doesn't beahve well with linux fonts and windows emojis are ugly
-              fontFamilyFallback: Platform.isLinux || Platform.isWindows
-                  ? ['NotoEmoji']
-                  : [],
-            ),
-          ),
-          routerConfig: router,
-        );
-      },
+      routerConfig: router,
     );
   }
 }

@@ -59,10 +59,6 @@ flutter:
         - asset: assets/fonts/Inter-Cleaned.ttf
         - asset: assets/fonts/Inter-Italic-Cleaned.ttf
 
-    - family: NotoEmoji
-      fonts:
-        - asset: assets/fonts/NotoColorEmoji.ttf
-
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
