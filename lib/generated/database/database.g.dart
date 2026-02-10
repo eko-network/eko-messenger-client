@@ -2330,6 +2330,15 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
         requiredDuringInsert: true,
       ).withConverter<UuidValue>($MessagesTable.$converterid);
   @override
+  late final GeneratedColumnWithTypeConverter<Uri?, String> envelopeId =
+      GeneratedColumn<String>(
+        'envelope_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<Uri?>($MessagesTable.$converterenvelopeIdn);
+  @override
   late final GeneratedColumnWithTypeConverter<Uri, String> to =
       GeneratedColumn<String>(
         'to',
@@ -2389,6 +2398,7 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    envelopeId,
     to,
     from,
     content,
@@ -2437,6 +2447,12 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           data['${effectivePrefix}id'],
         )!,
       ),
+      envelopeId: $MessagesTable.$converterenvelopeIdn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}envelope_id'],
+        ),
+      ),
       to: $MessagesTable.$converterto.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -2479,6 +2495,10 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
 
   static TypeConverter<UuidValue, String> $converterid =
       const UuidValueConverter();
+  static TypeConverter<Uri, String> $converterenvelopeId =
+      const UriTypeConverter();
+  static TypeConverter<Uri?, String?> $converterenvelopeIdn =
+      NullAwareTypeConverter.wrap($converterenvelopeId);
   static TypeConverter<Uri, String> $converterto = const UriTypeConverter();
   static TypeConverter<Uri, String> $converterfrom = const UriTypeConverter();
   static TypeConverter<UuidValue, String> $converterinReplyTo =
@@ -2491,6 +2511,7 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
 
 class Message extends DataClass implements Insertable<Message> {
   final UuidValue id;
+  final Uri? envelopeId;
   final Uri to;
   final Uri from;
   final String? content;
@@ -2499,6 +2520,7 @@ class Message extends DataClass implements Insertable<Message> {
   final MessageStatus status;
   const Message({
     required this.id,
+    this.envelopeId,
     required this.to,
     required this.from,
     this.content,
@@ -2511,6 +2533,11 @@ class Message extends DataClass implements Insertable<Message> {
     final map = <String, Expression>{};
     {
       map['id'] = Variable<String>($MessagesTable.$converterid.toSql(id));
+    }
+    if (!nullToAbsent || envelopeId != null) {
+      map['envelope_id'] = Variable<String>(
+        $MessagesTable.$converterenvelopeIdn.toSql(envelopeId),
+      );
     }
     {
       map['to'] = Variable<String>($MessagesTable.$converterto.toSql(to));
@@ -2538,6 +2565,9 @@ class Message extends DataClass implements Insertable<Message> {
   MessagesCompanion toCompanion(bool nullToAbsent) {
     return MessagesCompanion(
       id: Value(id),
+      envelopeId: envelopeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(envelopeId),
       to: Value(to),
       from: Value(from),
       content: content == null && nullToAbsent
@@ -2558,6 +2588,7 @@ class Message extends DataClass implements Insertable<Message> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Message(
       id: serializer.fromJson<UuidValue>(json['id']),
+      envelopeId: serializer.fromJson<Uri?>(json['envelopeId']),
       to: serializer.fromJson<Uri>(json['to']),
       from: serializer.fromJson<Uri>(json['from']),
       content: serializer.fromJson<String?>(json['content']),
@@ -2573,6 +2604,7 @@ class Message extends DataClass implements Insertable<Message> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<UuidValue>(id),
+      'envelopeId': serializer.toJson<Uri?>(envelopeId),
       'to': serializer.toJson<Uri>(to),
       'from': serializer.toJson<Uri>(from),
       'content': serializer.toJson<String?>(content),
@@ -2586,6 +2618,7 @@ class Message extends DataClass implements Insertable<Message> {
 
   Message copyWith({
     UuidValue? id,
+    Value<Uri?> envelopeId = const Value.absent(),
     Uri? to,
     Uri? from,
     Value<String?> content = const Value.absent(),
@@ -2594,6 +2627,7 @@ class Message extends DataClass implements Insertable<Message> {
     MessageStatus? status,
   }) => Message(
     id: id ?? this.id,
+    envelopeId: envelopeId.present ? envelopeId.value : this.envelopeId,
     to: to ?? this.to,
     from: from ?? this.from,
     content: content.present ? content.value : this.content,
@@ -2604,6 +2638,9 @@ class Message extends DataClass implements Insertable<Message> {
   Message copyWithCompanion(MessagesCompanion data) {
     return Message(
       id: data.id.present ? data.id.value : this.id,
+      envelopeId: data.envelopeId.present
+          ? data.envelopeId.value
+          : this.envelopeId,
       to: data.to.present ? data.to.value : this.to,
       from: data.from.present ? data.from.value : this.from,
       content: data.content.present ? data.content.value : this.content,
@@ -2617,6 +2654,7 @@ class Message extends DataClass implements Insertable<Message> {
   String toString() {
     return (StringBuffer('Message(')
           ..write('id: $id, ')
+          ..write('envelopeId: $envelopeId, ')
           ..write('to: $to, ')
           ..write('from: $from, ')
           ..write('content: $content, ')
@@ -2629,12 +2667,13 @@ class Message extends DataClass implements Insertable<Message> {
 
   @override
   int get hashCode =>
-      Object.hash(id, to, from, content, inReplyTo, time, status);
+      Object.hash(id, envelopeId, to, from, content, inReplyTo, time, status);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Message &&
           other.id == this.id &&
+          other.envelopeId == this.envelopeId &&
           other.to == this.to &&
           other.from == this.from &&
           other.content == this.content &&
@@ -2645,6 +2684,7 @@ class Message extends DataClass implements Insertable<Message> {
 
 class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<UuidValue> id;
+  final Value<Uri?> envelopeId;
   final Value<Uri> to;
   final Value<Uri> from;
   final Value<String?> content;
@@ -2654,6 +2694,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<int> rowid;
   const MessagesCompanion({
     this.id = const Value.absent(),
+    this.envelopeId = const Value.absent(),
     this.to = const Value.absent(),
     this.from = const Value.absent(),
     this.content = const Value.absent(),
@@ -2664,6 +2705,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   });
   MessagesCompanion.insert({
     required UuidValue id,
+    this.envelopeId = const Value.absent(),
     required Uri to,
     required Uri from,
     this.content = const Value.absent(),
@@ -2677,6 +2719,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
        time = Value(time);
   static Insertable<Message> custom({
     Expression<String>? id,
+    Expression<String>? envelopeId,
     Expression<String>? to,
     Expression<String>? from,
     Expression<String>? content,
@@ -2687,6 +2730,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (envelopeId != null) 'envelope_id': envelopeId,
       if (to != null) 'to': to,
       if (from != null) 'from': from,
       if (content != null) 'content': content,
@@ -2699,6 +2743,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
 
   MessagesCompanion copyWith({
     Value<UuidValue>? id,
+    Value<Uri?>? envelopeId,
     Value<Uri>? to,
     Value<Uri>? from,
     Value<String?>? content,
@@ -2709,6 +2754,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   }) {
     return MessagesCompanion(
       id: id ?? this.id,
+      envelopeId: envelopeId ?? this.envelopeId,
       to: to ?? this.to,
       from: from ?? this.from,
       content: content ?? this.content,
@@ -2724,6 +2770,11 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>($MessagesTable.$converterid.toSql(id.value));
+    }
+    if (envelopeId.present) {
+      map['envelope_id'] = Variable<String>(
+        $MessagesTable.$converterenvelopeIdn.toSql(envelopeId.value),
+      );
     }
     if (to.present) {
       map['to'] = Variable<String>($MessagesTable.$converterto.toSql(to.value));
@@ -2759,6 +2810,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   String toString() {
     return (StringBuffer('MessagesCompanion(')
           ..write('id: $id, ')
+          ..write('envelopeId: $envelopeId, ')
           ..write('to: $to, ')
           ..write('from: $from, ')
           ..write('content: $content, ')
@@ -2825,12 +2877,22 @@ class $ContactsTable extends Contacts with TableInfo<$ContactsTable, Person> {
         requiredDuringInsert: true,
       ).withConverter<Uri>($ContactsTable.$converterdevices);
   @override
+  late final GeneratedColumnWithTypeConverter<Uri?, String> profilePicture =
+      GeneratedColumn<String>(
+        'profile_picture',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<Uri?>($ContactsTable.$converterprofilePicturen);
+  @override
   List<GeneratedColumn> get $columns => [
     id,
     preferredUsername,
     inbox,
     outbox,
     devices,
+    profilePicture,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2892,6 +2954,12 @@ class $ContactsTable extends Contacts with TableInfo<$ContactsTable, Person> {
         DriftSqlType.string,
         data['${effectivePrefix}preferred_username'],
       )!,
+      profilePicture: $ContactsTable.$converterprofilePicturen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}profile_picture'],
+        ),
+      ),
     );
   }
 
@@ -2905,6 +2973,10 @@ class $ContactsTable extends Contacts with TableInfo<$ContactsTable, Person> {
   static TypeConverter<Uri, String> $converteroutbox = const UriTypeConverter();
   static TypeConverter<Uri, String> $converterdevices =
       const UriTypeConverter();
+  static TypeConverter<Uri, String> $converterprofilePicture =
+      const UriTypeConverter();
+  static TypeConverter<Uri?, String?> $converterprofilePicturen =
+      NullAwareTypeConverter.wrap($converterprofilePicture);
 }
 
 class ContactsCompanion extends UpdateCompanion<Person> {
@@ -2913,6 +2985,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
   final Value<Uri> inbox;
   final Value<Uri> outbox;
   final Value<Uri> devices;
+  final Value<Uri?> profilePicture;
   final Value<int> rowid;
   const ContactsCompanion({
     this.id = const Value.absent(),
@@ -2920,6 +2993,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
     this.inbox = const Value.absent(),
     this.outbox = const Value.absent(),
     this.devices = const Value.absent(),
+    this.profilePicture = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ContactsCompanion.insert({
@@ -2928,6 +3002,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
     required Uri inbox,
     required Uri outbox,
     required Uri devices,
+    this.profilePicture = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        preferredUsername = Value(preferredUsername),
@@ -2940,6 +3015,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
     Expression<String>? inbox,
     Expression<String>? outbox,
     Expression<String>? devices,
+    Expression<String>? profilePicture,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2948,6 +3024,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
       if (inbox != null) 'inbox': inbox,
       if (outbox != null) 'outbox': outbox,
       if (devices != null) 'devices': devices,
+      if (profilePicture != null) 'profile_picture': profilePicture,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2958,6 +3035,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
     Value<Uri>? inbox,
     Value<Uri>? outbox,
     Value<Uri>? devices,
+    Value<Uri?>? profilePicture,
     Value<int>? rowid,
   }) {
     return ContactsCompanion(
@@ -2966,6 +3044,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
       inbox: inbox ?? this.inbox,
       outbox: outbox ?? this.outbox,
       devices: devices ?? this.devices,
+      profilePicture: profilePicture ?? this.profilePicture,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2994,6 +3073,11 @@ class ContactsCompanion extends UpdateCompanion<Person> {
         $ContactsTable.$converterdevices.toSql(devices.value),
       );
     }
+    if (profilePicture.present) {
+      map['profile_picture'] = Variable<String>(
+        $ContactsTable.$converterprofilePicturen.toSql(profilePicture.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3008,6 +3092,7 @@ class ContactsCompanion extends UpdateCompanion<Person> {
           ..write('inbox: $inbox, ')
           ..write('outbox: $outbox, ')
           ..write('devices: $devices, ')
+          ..write('profilePicture: $profilePicture, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3041,8 +3126,37 @@ class $ConversationsTable extends Conversations
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _lastMessageContentMeta =
+      const VerificationMeta('lastMessageContent');
   @override
-  List<GeneratedColumn> get $columns => [participant, id];
+  late final GeneratedColumn<String> lastMessageContent =
+      GeneratedColumn<String>(
+        'last_message_content',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _lastMessageTimeMeta = const VerificationMeta(
+    'lastMessageTime',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastMessageTime =
+      GeneratedColumn<DateTime>(
+        'last_message_time',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        defaultValue: currentDateAndTime,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    participant,
+    id,
+    lastMessageContent,
+    lastMessageTime,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3057,6 +3171,24 @@ class $ConversationsTable extends Conversations
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('last_message_content')) {
+      context.handle(
+        _lastMessageContentMeta,
+        lastMessageContent.isAcceptableOrUnknown(
+          data['last_message_content']!,
+          _lastMessageContentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_message_time')) {
+      context.handle(
+        _lastMessageTimeMeta,
+        lastMessageTime.isAcceptableOrUnknown(
+          data['last_message_time']!,
+          _lastMessageTimeMeta,
+        ),
+      );
     }
     return context;
   }
@@ -3077,6 +3209,14 @@ class $ConversationsTable extends Conversations
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      lastMessageContent: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_message_content'],
+      ),
+      lastMessageTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_message_time'],
+      )!,
     );
   }
 
@@ -3092,7 +3232,14 @@ class $ConversationsTable extends Conversations
 class Conversation extends DataClass implements Insertable<Conversation> {
   final Uri participant;
   final int id;
-  const Conversation({required this.participant, required this.id});
+  final String? lastMessageContent;
+  final DateTime lastMessageTime;
+  const Conversation({
+    required this.participant,
+    required this.id,
+    this.lastMessageContent,
+    required this.lastMessageTime,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3102,6 +3249,10 @@ class Conversation extends DataClass implements Insertable<Conversation> {
       );
     }
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || lastMessageContent != null) {
+      map['last_message_content'] = Variable<String>(lastMessageContent);
+    }
+    map['last_message_time'] = Variable<DateTime>(lastMessageTime);
     return map;
   }
 
@@ -3109,6 +3260,10 @@ class Conversation extends DataClass implements Insertable<Conversation> {
     return ConversationsCompanion(
       participant: Value(participant),
       id: Value(id),
+      lastMessageContent: lastMessageContent == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastMessageContent),
+      lastMessageTime: Value(lastMessageTime),
     );
   }
 
@@ -3120,6 +3275,10 @@ class Conversation extends DataClass implements Insertable<Conversation> {
     return Conversation(
       participant: serializer.fromJson<Uri>(json['participant']),
       id: serializer.fromJson<int>(json['id']),
+      lastMessageContent: serializer.fromJson<String?>(
+        json['lastMessageContent'],
+      ),
+      lastMessageTime: serializer.fromJson<DateTime>(json['lastMessageTime']),
     );
   }
   @override
@@ -3128,12 +3287,23 @@ class Conversation extends DataClass implements Insertable<Conversation> {
     return <String, dynamic>{
       'participant': serializer.toJson<Uri>(participant),
       'id': serializer.toJson<int>(id),
+      'lastMessageContent': serializer.toJson<String?>(lastMessageContent),
+      'lastMessageTime': serializer.toJson<DateTime>(lastMessageTime),
     };
   }
 
-  Conversation copyWith({Uri? participant, int? id}) => Conversation(
+  Conversation copyWith({
+    Uri? participant,
+    int? id,
+    Value<String?> lastMessageContent = const Value.absent(),
+    DateTime? lastMessageTime,
+  }) => Conversation(
     participant: participant ?? this.participant,
     id: id ?? this.id,
+    lastMessageContent: lastMessageContent.present
+        ? lastMessageContent.value
+        : this.lastMessageContent,
+    lastMessageTime: lastMessageTime ?? this.lastMessageTime,
   );
   Conversation copyWithCompanion(ConversationsCompanion data) {
     return Conversation(
@@ -3141,6 +3311,12 @@ class Conversation extends DataClass implements Insertable<Conversation> {
           ? data.participant.value
           : this.participant,
       id: data.id.present ? data.id.value : this.id,
+      lastMessageContent: data.lastMessageContent.present
+          ? data.lastMessageContent.value
+          : this.lastMessageContent,
+      lastMessageTime: data.lastMessageTime.present
+          ? data.lastMessageTime.value
+          : this.lastMessageTime,
     );
   }
 
@@ -3148,46 +3324,69 @@ class Conversation extends DataClass implements Insertable<Conversation> {
   String toString() {
     return (StringBuffer('Conversation(')
           ..write('participant: $participant, ')
-          ..write('id: $id')
+          ..write('id: $id, ')
+          ..write('lastMessageContent: $lastMessageContent, ')
+          ..write('lastMessageTime: $lastMessageTime')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(participant, id);
+  int get hashCode =>
+      Object.hash(participant, id, lastMessageContent, lastMessageTime);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Conversation &&
           other.participant == this.participant &&
-          other.id == this.id);
+          other.id == this.id &&
+          other.lastMessageContent == this.lastMessageContent &&
+          other.lastMessageTime == this.lastMessageTime);
 }
 
 class ConversationsCompanion extends UpdateCompanion<Conversation> {
   final Value<Uri> participant;
   final Value<int> id;
+  final Value<String?> lastMessageContent;
+  final Value<DateTime> lastMessageTime;
   const ConversationsCompanion({
     this.participant = const Value.absent(),
     this.id = const Value.absent(),
+    this.lastMessageContent = const Value.absent(),
+    this.lastMessageTime = const Value.absent(),
   });
   ConversationsCompanion.insert({
     required Uri participant,
     this.id = const Value.absent(),
+    this.lastMessageContent = const Value.absent(),
+    this.lastMessageTime = const Value.absent(),
   }) : participant = Value(participant);
   static Insertable<Conversation> custom({
     Expression<String>? participant,
     Expression<int>? id,
+    Expression<String>? lastMessageContent,
+    Expression<DateTime>? lastMessageTime,
   }) {
     return RawValuesInsertable({
       if (participant != null) 'participant': participant,
       if (id != null) 'id': id,
+      if (lastMessageContent != null)
+        'last_message_content': lastMessageContent,
+      if (lastMessageTime != null) 'last_message_time': lastMessageTime,
     });
   }
 
-  ConversationsCompanion copyWith({Value<Uri>? participant, Value<int>? id}) {
+  ConversationsCompanion copyWith({
+    Value<Uri>? participant,
+    Value<int>? id,
+    Value<String?>? lastMessageContent,
+    Value<DateTime>? lastMessageTime,
+  }) {
     return ConversationsCompanion(
       participant: participant ?? this.participant,
       id: id ?? this.id,
+      lastMessageContent: lastMessageContent ?? this.lastMessageContent,
+      lastMessageTime: lastMessageTime ?? this.lastMessageTime,
     );
   }
 
@@ -3202,6 +3401,12 @@ class ConversationsCompanion extends UpdateCompanion<Conversation> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
+    if (lastMessageContent.present) {
+      map['last_message_content'] = Variable<String>(lastMessageContent.value);
+    }
+    if (lastMessageTime.present) {
+      map['last_message_time'] = Variable<DateTime>(lastMessageTime.value);
+    }
     return map;
   }
 
@@ -3209,7 +3414,9 @@ class ConversationsCompanion extends UpdateCompanion<Conversation> {
   String toString() {
     return (StringBuffer('ConversationsCompanion(')
           ..write('participant: $participant, ')
-          ..write('id: $id')
+          ..write('id: $id, ')
+          ..write('lastMessageContent: $lastMessageContent, ')
+          ..write('lastMessageTime: $lastMessageTime')
           ..write(')'))
         .toString();
   }
@@ -4883,6 +5090,7 @@ typedef $$AuthInfoTableTableProcessedTableManager =
 typedef $$MessagesTableCreateCompanionBuilder =
     MessagesCompanion Function({
       required UuidValue id,
+      Value<Uri?> envelopeId,
       required Uri to,
       required Uri from,
       Value<String?> content,
@@ -4894,6 +5102,7 @@ typedef $$MessagesTableCreateCompanionBuilder =
 typedef $$MessagesTableUpdateCompanionBuilder =
     MessagesCompanion Function({
       Value<UuidValue> id,
+      Value<Uri?> envelopeId,
       Value<Uri> to,
       Value<Uri> from,
       Value<String?> content,
@@ -4915,6 +5124,12 @@ class $$MessagesTableFilterComposer
   ColumnWithTypeConverterFilters<UuidValue, UuidValue, String> get id =>
       $composableBuilder(
         column: $table.id,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<Uri?, Uri, String> get envelopeId =>
+      $composableBuilder(
+        column: $table.envelopeId,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
@@ -4966,6 +5181,11 @@ class $$MessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get envelopeId => $composableBuilder(
+    column: $table.envelopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get to => $composableBuilder(
     column: $table.to,
     builder: (column) => ColumnOrderings(column),
@@ -5008,6 +5228,12 @@ class $$MessagesTableAnnotationComposer
   });
   GeneratedColumnWithTypeConverter<UuidValue, String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Uri?, String> get envelopeId =>
+      $composableBuilder(
+        column: $table.envelopeId,
+        builder: (column) => column,
+      );
 
   GeneratedColumnWithTypeConverter<Uri, String> get to =>
       $composableBuilder(column: $table.to, builder: (column) => column);
@@ -5057,6 +5283,7 @@ class $$MessagesTableTableManager
           updateCompanionCallback:
               ({
                 Value<UuidValue> id = const Value.absent(),
+                Value<Uri?> envelopeId = const Value.absent(),
                 Value<Uri> to = const Value.absent(),
                 Value<Uri> from = const Value.absent(),
                 Value<String?> content = const Value.absent(),
@@ -5066,6 +5293,7 @@ class $$MessagesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => MessagesCompanion(
                 id: id,
+                envelopeId: envelopeId,
                 to: to,
                 from: from,
                 content: content,
@@ -5077,6 +5305,7 @@ class $$MessagesTableTableManager
           createCompanionCallback:
               ({
                 required UuidValue id,
+                Value<Uri?> envelopeId = const Value.absent(),
                 required Uri to,
                 required Uri from,
                 Value<String?> content = const Value.absent(),
@@ -5086,6 +5315,7 @@ class $$MessagesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => MessagesCompanion.insert(
                 id: id,
+                envelopeId: envelopeId,
                 to: to,
                 from: from,
                 content: content,
@@ -5123,6 +5353,7 @@ typedef $$ContactsTableCreateCompanionBuilder =
       required Uri inbox,
       required Uri outbox,
       required Uri devices,
+      Value<Uri?> profilePicture,
       Value<int> rowid,
     });
 typedef $$ContactsTableUpdateCompanionBuilder =
@@ -5132,6 +5363,7 @@ typedef $$ContactsTableUpdateCompanionBuilder =
       Value<Uri> inbox,
       Value<Uri> outbox,
       Value<Uri> devices,
+      Value<Uri?> profilePicture,
       Value<int> rowid,
     });
 
@@ -5198,6 +5430,12 @@ class $$ContactsTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
+  ColumnWithTypeConverterFilters<Uri?, Uri, String> get profilePicture =>
+      $composableBuilder(
+        column: $table.profilePicture,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
   Expression<bool> conversationsRefs(
     Expression<bool> Function($$ConversationsTableFilterComposer f) f,
   ) {
@@ -5257,6 +5495,11 @@ class $$ContactsTableOrderingComposer
     column: $table.devices,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get profilePicture => $composableBuilder(
+    column: $table.profilePicture,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ContactsTableAnnotationComposer
@@ -5284,6 +5527,12 @@ class $$ContactsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<Uri, String> get devices =>
       $composableBuilder(column: $table.devices, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Uri?, String> get profilePicture =>
+      $composableBuilder(
+        column: $table.profilePicture,
+        builder: (column) => column,
+      );
 
   Expression<T> conversationsRefs<T extends Object>(
     Expression<T> Function($$ConversationsTableAnnotationComposer a) f,
@@ -5344,6 +5593,7 @@ class $$ContactsTableTableManager
                 Value<Uri> inbox = const Value.absent(),
                 Value<Uri> outbox = const Value.absent(),
                 Value<Uri> devices = const Value.absent(),
+                Value<Uri?> profilePicture = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ContactsCompanion(
                 id: id,
@@ -5351,6 +5601,7 @@ class $$ContactsTableTableManager
                 inbox: inbox,
                 outbox: outbox,
                 devices: devices,
+                profilePicture: profilePicture,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5360,6 +5611,7 @@ class $$ContactsTableTableManager
                 required Uri inbox,
                 required Uri outbox,
                 required Uri devices,
+                Value<Uri?> profilePicture = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ContactsCompanion.insert(
                 id: id,
@@ -5367,6 +5619,7 @@ class $$ContactsTableTableManager
                 inbox: inbox,
                 outbox: outbox,
                 devices: devices,
+                profilePicture: profilePicture,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -5429,9 +5682,19 @@ typedef $$ContactsTableProcessedTableManager =
       PrefetchHooks Function({bool conversationsRefs})
     >;
 typedef $$ConversationsTableCreateCompanionBuilder =
-    ConversationsCompanion Function({required Uri participant, Value<int> id});
+    ConversationsCompanion Function({
+      required Uri participant,
+      Value<int> id,
+      Value<String?> lastMessageContent,
+      Value<DateTime> lastMessageTime,
+    });
 typedef $$ConversationsTableUpdateCompanionBuilder =
-    ConversationsCompanion Function({Value<Uri> participant, Value<int> id});
+    ConversationsCompanion Function({
+      Value<Uri> participant,
+      Value<int> id,
+      Value<String?> lastMessageContent,
+      Value<DateTime> lastMessageTime,
+    });
 
 final class $$ConversationsTableReferences
     extends BaseReferences<_$AppDatabase, $ConversationsTable, Conversation> {
@@ -5475,6 +5738,16 @@ class $$ConversationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get lastMessageContent => $composableBuilder(
+    column: $table.lastMessageContent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastMessageTime => $composableBuilder(
+    column: $table.lastMessageTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ContactsTableFilterComposer get participant {
     final $$ContactsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -5513,6 +5786,16 @@ class $$ConversationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get lastMessageContent => $composableBuilder(
+    column: $table.lastMessageContent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastMessageTime => $composableBuilder(
+    column: $table.lastMessageTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ContactsTableOrderingComposer get participant {
     final $$ContactsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -5548,6 +5831,16 @@ class $$ConversationsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get lastMessageContent => $composableBuilder(
+    column: $table.lastMessageContent,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastMessageTime => $composableBuilder(
+    column: $table.lastMessageTime,
+    builder: (column) => column,
+  );
 
   $$ContactsTableAnnotationComposer get participant {
     final $$ContactsTableAnnotationComposer composer = $composerBuilder(
@@ -5603,14 +5896,25 @@ class $$ConversationsTableTableManager
               ({
                 Value<Uri> participant = const Value.absent(),
                 Value<int> id = const Value.absent(),
-              }) => ConversationsCompanion(participant: participant, id: id),
+                Value<String?> lastMessageContent = const Value.absent(),
+                Value<DateTime> lastMessageTime = const Value.absent(),
+              }) => ConversationsCompanion(
+                participant: participant,
+                id: id,
+                lastMessageContent: lastMessageContent,
+                lastMessageTime: lastMessageTime,
+              ),
           createCompanionCallback:
               ({
                 required Uri participant,
                 Value<int> id = const Value.absent(),
+                Value<String?> lastMessageContent = const Value.absent(),
+                Value<DateTime> lastMessageTime = const Value.absent(),
               }) => ConversationsCompanion.insert(
                 participant: participant,
                 id: id,
+                lastMessageContent: lastMessageContent,
+                lastMessageTime: lastMessageTime,
               ),
           withReferenceMapper: (p0) => p0
               .map(

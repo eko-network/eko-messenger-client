@@ -3,6 +3,8 @@ import 'package:eko_messenger/database/type_converters.dart';
 
 class Messages extends Table {
   TextColumn get id => text().map(const UuidValueConverter())();
+  TextColumn get envelopeId =>
+      text().map(const UriTypeConverter()).nullable()();
   TextColumn get to => text().map(const UriTypeConverter())();
   TextColumn get from => text().map(const UriTypeConverter())();
   TextColumn get content => text().nullable()();

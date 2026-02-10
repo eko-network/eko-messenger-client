@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/device_name_provider.dart';
 import 'package:eko_messenger/providers/messages.dart';
+import 'package:eko_messenger/utils/args.dart';
 import 'package:eko_messenger/utils/device_name.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,15 +18,20 @@ ShadTextTheme mergeEmojiFallback(ShadTextTheme original, String emojiFont) {
   );
 }
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  Args.init(args);
   open.overrideFor(OperatingSystem.android, openCipherOnAndroid);
   final deviceName = await getDeiviceName();
   final container = ProviderContainer(
     overrides: [deviceNameProvider.overrideWithValue(deviceName)],
   );
   await container.read(authProvider).initialize();
-  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
+  if (!args.contains("--unifiedpush-bg")) {
+    runApp(
+      UncontrolledProviderScope(container: container, child: const MyApp()),
+    );
+  }
 }
 
 class MyApp extends ConsumerWidget {
