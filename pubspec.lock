@@ -292,11 +292,9 @@ packages:
   ecp:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "6c7e9db808213e1c2973d135c3168a6e8ffd9f78"
-      resolved-ref: "6c7e9db808213e1c2973d135c3168a6e8ffd9f78"
-      url: "https://github.com/eko-network/ecp-dart-sdk"
-    source: git
+      path: "../ecp-dart-sdk"
+      relative: true
+    source: path
     version: "0.0.1"
   ed25519_edwards:
     dependency: transitive
@@ -306,6 +304,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.1"
+  emoji_picker_flutter:
+    dependency: "direct main"
+    description:
+      name: emoji_picker_flutter
+      sha256: "984d3e9b9cf3175df9a868ce4a2d9611491e80e5d3b8e2b1e8991a4998972885"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.4.0"
   extended_image:
     dependency: transitive
     description:
@@ -367,14 +373,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.2"
-  flutter_emoji:
-    dependency: "direct main"
-    description:
-      name: flutter_emoji
-      sha256: "3cc794d2459738e6489cee63f50e85de3732257042f425611d255c8049ce1b81"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.5.1"
   flutter_hooks:
     dependency: transitive
     description:
@@ -1006,6 +1004,62 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.43.0"
+  shared_preferences:
+    dependency: transitive
+    description:
+      name: shared_preferences
+      sha256: "2939ae520c9024cb197fc20dee269cd8cdbf564c8b5746374ec6cacdc5169e64"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.4"
+  shared_preferences_android:
+    dependency: transitive
+    description:
+      name: shared_preferences_android
+      sha256: cbc40be9be1c5af4dab4d6e0de4d5d3729e6f3d65b89d21e1815d57705644a6f
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.20"
+  shared_preferences_foundation:
+    dependency: transitive
+    description:
+      name: shared_preferences_foundation
+      sha256: "4e7eaffc2b17ba398759f1151415869a34771ba11ebbccd1b0145472a619a64f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.6"
+  shared_preferences_linux:
+    dependency: transitive
+    description:
+      name: shared_preferences_linux
+      sha256: "580abfd40f415611503cae30adf626e6656dfb2f0cee8f465ece7b6defb40f2f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
+  shared_preferences_platform_interface:
+    dependency: transitive
+    description:
+      name: shared_preferences_platform_interface
+      sha256: "57cbf196c486bc2cf1f02b85784932c6094376284b3ad5779d1b1c6c6a816b80"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
+  shared_preferences_web:
+    dependency: transitive
+    description:
+      name: shared_preferences_web
+      sha256: c49bd060261c9a3f0ff445892695d6212ff603ef3115edbb448509d407600019
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.3"
+  shared_preferences_windows:
+    dependency: transitive
+    description:
+      name: shared_preferences_windows
+      sha256: "94ef0f72b2d71bc3e700e025db3710911bd51a71cefb65cc609dd0d9a982e3c1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
   shelf:
     dependency: transitive
     description:
@@ -1228,7 +1282,7 @@ packages:
     source: hosted
     version: "1.0.0"
   unifiedpush_platform_interface:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: unifiedpush_platform_interface
       sha256: "83372bc8d794b8b12ef6993b518d7be907dcfc2191bdf6de0ece5c4445d89880"
@@ -1240,6 +1294,14 @@ packages:
     description:
       name: unifiedpush_storage_interface
       sha256: b8d423a4695efc616aa21d8ab48fb5ef99d6288c68b56282b8faac1579ceabd9
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  unifiedpush_storage_shared_preferences:
+    dependency: "direct main"
+    description:
+      name: unifiedpush_storage_shared_preferences
+      sha256: eda9c52bac0058f81e0d9c65e33eedc12c5901d2e68ad47fdf68175ddf00a3b4
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
@@ -1332,7 +1394,7 @@ packages:
     source: hosted
     version: "3.0.3"
   webcrypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: webcrypto
       sha256: "6b43001c4110856ff7fa5e5e65e7b2d44bec1d8b54a4d84d5fa2c7622267c5c1"

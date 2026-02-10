@@ -52,7 +52,10 @@ class ConversationsDao extends DatabaseAccessor<AppDatabase>
 
   Stream<List<ConversationWithContact>> watchConversationsWithContact() {
     return (select(conversations)..orderBy([
-          (u) => OrderingTerm(expression: u.id, mode: OrderingMode.desc),
+          (u) => OrderingTerm(
+            expression: u.lastMessageTime,
+            mode: OrderingMode.desc,
+          ),
         ]))
         .join([
           leftOuterJoin(

@@ -124,7 +124,7 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
   /// Handles messages from both stream interface and getMessages calls
   /// notifiableOverride ensures the pipeline will notifiy on any notifiable event regardles of isDesktopNotifiable
   Future<void> processMessage(
-    ActivityWithRecipients activity, {
+    ActivityWithMetaData activity, {
     bool notifiableOverride = false,
   }) async {
     debugPrint('Processing message: ${activity.toString()}');
@@ -141,10 +141,10 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
             final db = ref.read(appDatabaseProvider);
 
             final Uri otherParty;
-            if (me.id == activity.from) {
+            if (me.id == activity.actor) {
               otherParty = create.base.to;
             } else {
-              otherParty = activity.from;
+              otherParty = activity.actor;
             }
 
             // Ensure contact exists
@@ -169,7 +169,7 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
               );
             }
             debugPrint("Processed message, notifiable: $notifiable");
-            if (notifiable && me.id != activity.from) {
+            if (notifiable && me.id != activity.actor) {
               // TODO discard malformed objects
               _notificationService.showNewMessageNotification(
                 from: contact.preferredUsername,
@@ -177,14 +177,15 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
               );
             }
             await db.messagesDao.insertNewMessage(
-              Message(
-                id: note.base.id,
-                to: create.base.to,
-                from: activity.from,
-                time: DateTime.now(),
-                content: note.content,
-                status: MessageStatus.delivered,
-                inReplyTo: note.base.inReplyTo,
+              MessagesCompanion(
+                envelopeId: Value(activity.id),
+                id: Value(note.base.id),
+                to: Value(create.base.to),
+                from: Value(activity.actor),
+                time: Value(DateTime.now()),
+                content: Value(note.content),
+                status: Value(MessageStatus.delivered),
+                inReplyTo: Value(note.base.inReplyTo),
               ),
             );
             break;
@@ -192,8 +193,16 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
             debugPrint('Unknown object: ${create.object.type}}');
         }
         break;
+      case Delivered delivered:
+        final db = ref.read(appDatabaseProvider);
+
+        await db.messagesDao.updateMessageStatusFromEnvelope(
+          delivered.object,
+          MessageStatus.delivered,
+        );
+
       default:
-        debugPrint('Skipping non-Create activity: ${activity.activity.type}}');
+        debugPrint('Skipping Unknown activity: ${activity.activity.type}}');
     }
   }
 }

@@ -18,6 +18,7 @@ class ContactsDao extends DatabaseAccessor<AppDatabase>
       inbox: Value(contact.inbox),
       outbox: Value(contact.outbox),
       devices: Value(contact.devices),
+      profilePicture: Value(contact.profilePicture),
     );
     await into(contacts).insert(companion);
   }

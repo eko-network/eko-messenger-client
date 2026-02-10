@@ -9,6 +9,8 @@ class Contacts extends Table {
   TextColumn get inbox => text().map(const UriTypeConverter())();
   TextColumn get outbox => text().map(const UriTypeConverter())();
   TextColumn get devices => text().map(const UriTypeConverter())();
+  TextColumn get profilePicture =>
+      text().map(const UriTypeConverter()).nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

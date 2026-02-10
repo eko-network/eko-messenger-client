@@ -2,6 +2,8 @@ import 'package:eko_messenger/database/database.dart';
 import 'package:eko_messenger/database/type_converters.dart';
 import 'package:eko_messenger/providers/time.dart';
 import 'package:eko_messenger/utils/constants.dart' as c;
+import 'package:eko_messenger/utils/emoji_text_style.dart';
+import 'package:eko_messenger/widgets/time.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -21,6 +23,7 @@ bool _isShortEmojiString(String text) {
   }
 
   final isEmojiLike = RegExp(
+    // ignore: valid_regexps
     r'[^\x00-\x7F]|\p{Emoji}',
     unicode: true,
   ).hasMatch(text);
@@ -54,25 +57,33 @@ class DateChip extends ConsumerWidget {
   }
 }
 
-class TimeWidget extends ConsumerWidget {
-  final DateTime messageTime;
-  const TimeWidget({super.key, required this.messageTime});
+class StatusIcon extends StatelessWidget {
+  final MessageStatus status;
+  const StatusIcon({super.key, required this.status});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final now = ref.watch(currentTimeProvider);
-    final dif = now.difference(messageTime);
-    final String text;
-    if (dif.inMinutes < 1) {
-      text = 'now';
-    } else if (dif.inHours < 1) {
-      text = '${dif.inMinutes}m';
-    } else {
-      text = DateFormat.jm().format(messageTime);
+  Widget build(BuildContext context) {
+    final IconData icon;
+    switch (status) {
+      case MessageStatus.sending:
+        icon = LucideIcons.clock;
+        break;
+      case MessageStatus.sent:
+        icon = LucideIcons.check;
+        break;
+      case MessageStatus.delivered:
+        icon = LucideIcons.mailCheck;
+        break;
+      case MessageStatus.failed:
+        icon = LucideIcons.badgeAlert;
+        break;
     }
-    return Text(
-      text,
-      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w300),
+    return Icon(
+      icon,
+      size: 12,
+      color: status == MessageStatus.failed
+          ? ShadTheme.of(context).colorScheme.destructive
+          : Colors.white70,
     );
   }
 }
@@ -93,17 +104,11 @@ class StatusWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TimeWidget(messageTime: message.time),
+          TimeWidget(time: message.time),
           if (!isReceived)
             Padding(
               padding: EdgeInsetsGeometry.only(left: 4),
-              child: Icon(
-                message.status == MessageStatus.sending
-                    ? LucideIcons.clock
-                    : LucideIcons.check,
-                size: 12,
-                color: Colors.white70,
-              ),
+              child: StatusIcon(status: message.status),
             ),
         ],
       ),
@@ -187,7 +192,9 @@ class MessageWidget extends StatelessWidget {
                 children: [
                   Text(
                     message.content ?? "No content",
-                    style: const TextStyle(fontSize: 32, color: Colors.white),
+                    style: emojiTextStyle(
+                      TextStyle(fontSize: 32, color: Colors.white),
+                    ),
                   ),
                   if (isBottom)
                     StatusWidget(message: message, isReceived: isReceived),

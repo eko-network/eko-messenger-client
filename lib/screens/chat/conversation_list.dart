@@ -4,7 +4,10 @@ import 'package:eko_messenger/database/database.dart';
 import 'package:eko_messenger/providers/database.dart';
 import 'package:eko_messenger/providers/ecp.dart';
 import 'package:eko_messenger/screens/chat/adaptive_chat_layout.dart';
+import 'package:eko_messenger/utils/emoji_text_style.dart';
+import 'package:eko_messenger/widgets/avatar.dart';
 import 'package:eko_messenger/widgets/resizable_panel.dart';
+import 'package:eko_messenger/widgets/time.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -169,25 +172,21 @@ class _ConversationListState extends ConsumerState<ConversationList> {
                           final conversation = widget.conversations[index];
                           final isSelected =
                               conversation.conversation.id == widget.selectedId;
-                          final avatar = CircleAvatar(
-                            radius: kConversationAvatarRadius,
-                            child: Text(
-                              conversation.contact.preferredUsername[0],
-                            ),
-                          );
 
                           if (showOnlyAvatar) {
                             return Tooltip(
                               message: conversation.contact.preferredUsername,
                               child: ListTile(
                                 selected: isSelected,
-                                selectedTileColor: Theme.of(
+                                selectedTileColor: ShadTheme.of(
                                   context,
-                                ).primaryColor.withOpacity(0.1),
+                                ).colorScheme.muted,
                                 contentPadding: const EdgeInsets.symmetric(
                                   vertical: 4,
                                 ),
-                                title: Center(child: avatar),
+                                title: Center(
+                                  child: Avatar(person: conversation.contact),
+                                ),
                                 onTap: () => widget.onConversationTap(
                                   conversation.conversation.id,
                                 ),
@@ -197,10 +196,11 @@ class _ConversationListState extends ConsumerState<ConversationList> {
 
                           return ListTile(
                             selected: isSelected,
-                            selectedTileColor: Theme.of(
+
+                            selectedTileColor: ShadTheme.of(
                               context,
-                            ).primaryColor.withOpacity(0.1),
-                            leading: avatar,
+                            ).colorScheme.muted,
+                            leading: Avatar(person: conversation.contact),
                             title: Text(
                               conversation.contact.preferredUsername,
                               style: const TextStyle(
@@ -209,9 +209,14 @@ class _ConversationListState extends ConsumerState<ConversationList> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             subtitle: Text(
-                              "fixme",
+                              conversation.conversation.lastMessageContent ??
+                                  "",
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: emojiTextStyle(TextStyle()),
+                            ),
+                            trailing: TimeWidget(
+                              time: conversation.conversation.lastMessageTime,
                             ),
                             onTap: () => widget.onConversationTap(
                               conversation.conversation.id,
@@ -245,7 +250,7 @@ class _ConversationListState extends ConsumerState<ConversationList> {
                               iconSize: 30.0,
                               padding: const EdgeInsets.all(5.0),
                               splashRadius: kConversationAvatarRadius,
-                              icon: const Icon(Icons.arrow_back_ios),
+                              icon: const Icon(LucideIcons.chevronLeft),
                             ),
                           ),
                           const SizedBox(width: 16),

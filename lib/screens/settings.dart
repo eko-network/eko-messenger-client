@@ -38,7 +38,7 @@ class _SettingsState extends ConsumerState<Settings> {
           onPressed: () {
             context.pop();
           },
-          icon: const Icon(Icons.arrow_back_ios),
+          icon: const Icon(LucideIcons.chevronLeft),
         ),
         title: const Text('Settings'),
       ),

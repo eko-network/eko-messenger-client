@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:ecp/ecp.dart';
 import 'package:eko_messenger/database/daos/conversations_dao.dart';
 import 'package:eko_messenger/database/database.dart';
@@ -6,7 +7,12 @@ import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/database.dart';
 import 'package:eko_messenger/providers/ecp.dart';
 import 'package:eko_messenger/utils/constants.dart' as c;
+import 'package:eko_messenger/utils/emoji_text_style.dart';
+import 'package:eko_messenger/widgets/avatar.dart';
+import 'package:eko_messenger/widgets/emoji_picker.dart';
 import 'package:eko_messenger/widgets/message.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,6 +38,7 @@ class ChatView extends ConsumerStatefulWidget {
 
 class _ChatViewState extends ConsumerState<ChatView> {
   final TextEditingController _messageController = TextEditingController();
+  final ShadPopoverController _popoverController = ShadPopoverController();
   final _uuid = Uuid();
   Stream<List<Message>>? _messagesStream;
   Uri? _lastActorId;
@@ -41,6 +48,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
   @override
   void dispose() {
     _messageController.dispose();
+    _popoverController.dispose();
     super.dispose();
   }
 
@@ -59,30 +67,47 @@ class _ChatViewState extends ConsumerState<ChatView> {
       ),
     );
 
+    final from = authInfo.actor.id;
+    final to = widget.conversation.contact.id;
+
     // Insert message to database with 'sending' status
     await db.messagesDao.insertNewMessage(
-      Message(
-        id: activity.object.base.id,
-        to: widget.conversation.contact.id,
-        from: authInfo.actor.id,
-        content: text,
-        time: DateTime.now(),
-        status: MessageStatus.sending,
+      MessagesCompanion(
+        id: Value(activity.object.base.id),
+        to: Value(to),
+        from: Value(from),
+        content: Value(text),
+        time: Value(DateTime.now()),
+        status: Value(MessageStatus.sending),
       ),
     );
 
     _messageController.clear();
     try {
-      await ref
+      final id = await ref
           .read(ecpProvider)
           .sendMessage(person: widget.conversation.contact, message: activity);
-      await db.messagesDao.updateMessageStatus(
-        activity.object.base.id,
-        MessageStatus.sent,
-      );
+      if (from == to) {
+        await db.messagesDao.updateMessageStatusFromId(
+          activity.object.base.id,
+          MessageStatus.delivered,
+        );
+      } else if (id != null) {
+        await db.messagesDao.markMessageSent(activity.object.base.id, id);
+      } else {
+        debugPrint('[chat_view] Warning: send did not return id');
+        await db.messagesDao.updateMessageStatusFromId(
+          activity.object.base.id,
+          MessageStatus.sent,
+        );
+      }
     } catch (e) {
       //TODO
       debugPrint('Failed to send message: $e');
+      await db.messagesDao.updateMessageStatusFromId(
+        activity.object.base.id,
+        MessageStatus.failed,
+      );
     }
   }
 
@@ -154,13 +179,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
             : null,
         title: Row(
           children: [
-            CircleAvatar(
-              radius: 16,
-              child: Text(
-                widget.conversation.contact.preferredUsername[0],
-                style: const TextStyle(fontSize: 14),
-              ),
-            ),
+            Avatar(person: widget.conversation.contact),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -253,59 +272,82 @@ class _ChatViewState extends ConsumerState<ChatView> {
             top: false,
             child: Padding(
               padding: const EdgeInsets.all(8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxHeight:
-                            12 * 24.0, // 12 lines * approximate line height
+              child: ShadPopover(
+                decoration: ShadDecoration(
+                  border: ShadBorder.all(color: Colors.transparent),
+                ),
+                controller: _popoverController,
+                anchor: const ShadAnchor(
+                  childAlignment: Alignment.bottomLeft,
+                  overlayAlignment: Alignment.topLeft,
+                  offset: Offset(0, -4),
+                ),
+                popover: (context) => SizedBox(
+                  // width: 380,
+                  // height: 450,
+                  child: StyledEmojiPicker(textController: _messageController),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (c.isDesktop)
+                      IconButton(
+                        icon: const Icon(LucideIcons.smile, size: 24),
+                        onPressed: _popoverController.toggle,
                       ),
-                      child: CallbackShortcuts(
-                        bindings: {
-                          const SingleActivator(LogicalKeyboardKey.enter):
-                              _sendMessage,
-                        },
-                        child: TextField(
-                          controller: _messageController,
-                          maxLines: null,
-                          minLines: 1,
-                          textCapitalization: TextCapitalization.sentences,
-                          keyboardType: TextInputType.multiline,
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide.none,
-                            ),
-                            fillColor: ShadTheme.of(
-                              context,
-                            ).colorScheme.custom[c.grayMessageColorKey],
-                            filled: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                    Expanded(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxHeight:
+                              12 * 24.0, // 12 lines * approximate line height
+                        ),
+                        child: CallbackShortcuts(
+                          bindings: {
+                            const SingleActivator(LogicalKeyboardKey.enter):
+                                _sendMessage,
+                          },
+                          child: TextField(
+                            style: emojiTextStyle(TextStyle()),
+                            controller: _messageController,
+                            maxLines: null,
+                            minLines: 1,
+                            textCapitalization: TextCapitalization.sentences,
+                            keyboardType: TextInputType.multiline,
+                            decoration: InputDecoration(
+                              hintText: 'Type a message...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide.none,
+                              ),
+                              fillColor: ShadTheme.of(
+                                context,
+                              ).colorScheme.custom[c.grayMessageColorKey],
+                              filled: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  CircleAvatar(
-                    backgroundColor: ShadTheme.of(
-                      context,
-                    ).colorScheme.custom[c.primaryColorKey],
-                    child: IconButton(
-                      icon: const Icon(
-                        LucideIcons.send,
-                        color: Colors.white,
-                        size: 20,
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      backgroundColor: ShadTheme.of(
+                        context,
+                      ).colorScheme.custom[c.primaryColorKey],
+                      child: IconButton(
+                        icon: const Icon(
+                          LucideIcons.send,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed: _sendMessage,
                       ),
-                      onPressed: _sendMessage,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:eko_messenger/utils/args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:unifiedpush/unifiedpush.dart';
 import 'package:eko_messenger/services/notification_service.dart';
 import 'package:eko_messenger/services/push/push_service.dart';
+import 'package:unifiedpush_platform_interface/unifiedpush_platform_interface.dart';
+import 'package:unifiedpush_storage_shared_preferences/storage.dart';
 
 /// UnifiedPush implementation of MessagingProvider
 /// Supports Linux and Android platforms
@@ -63,6 +66,11 @@ class UnifiedPushService implements PushService {
       onRegistrationFailed: _handleRegistrationFailed,
       onUnregistered: _handleUnregistered,
       onMessage: _handleMessage,
+      linuxOptions: LinuxOptions(
+        dbusName: "com.eko.eko_messenger",
+        background: Args.instance.arguments.contains("--unifiedpush-bg"),
+        storage: UnifiedPushStorageSharedPreferences(),
+      ),
     );
 
     _initialized = true;
