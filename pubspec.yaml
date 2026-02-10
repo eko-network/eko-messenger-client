@@ -2,7 +2,7 @@ name: eko_messenger
 description: "A new Flutter project."
 publish_to:
 
-version: 0.0.6+6
+version: 0.0.7+7
 
 environment:
   sdk: ^3.9.2
