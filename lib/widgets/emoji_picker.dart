@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-// 1. The Wrapper Widget
 class StyledEmojiPicker extends StatefulWidget {
   final TextEditingController textController;
 
@@ -15,23 +14,17 @@ class StyledEmojiPicker extends StatefulWidget {
 }
 
 class _StyledEmojiPickerState extends State<StyledEmojiPicker> {
-  // Signal Color Palette
-
   @override
   Widget build(BuildContext context) {
     final Color backgroundColor = ShadTheme.of(context).colorScheme.muted;
     final Color iconColor = ShadTheme.of(context).colorScheme.mutedForeground;
     final Color iconSelectedColor = ShadTheme.of(context).colorScheme.primary;
     return SizedBox(
-      width: 480,
-      height: 580,
       child: EmojiPicker(
         textEditingController: widget.textController,
-        // Pass our custom view builder
         customWidget: (config, state, showSearchView) =>
             _StyledEmojiLayout(config, state, showSearchView),
         config: Config(
-          // height: 350,
           checkPlatformCompatibility: true,
           emojiViewConfig: EmojiViewConfig(
             backgroundColor: backgroundColor,
@@ -43,7 +36,6 @@ class _StyledEmojiPickerState extends State<StyledEmojiPicker> {
                     : 1.0),
             recentsLimit: 28,
           ),
-          // We configure category icons here to use them in our custom bottom bar
           categoryViewConfig: CategoryViewConfig(
             backgroundColor: backgroundColor,
             iconColor: iconColor,
@@ -55,7 +47,6 @@ class _StyledEmojiPickerState extends State<StyledEmojiPicker> {
   }
 }
 
-// 2. The Custom View Implementation
 class _StyledEmojiLayout extends EmojiPickerView {
   const _StyledEmojiLayout(super.config, super.state, super.showSearchBar);
 
@@ -69,7 +60,6 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
   late PageController _pageController;
   late TextEditingController _searchController;
 
-  // To handle search state
   List<Emoji> _searchResults = [];
   bool _isSearching = false;
 
@@ -98,7 +88,6 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
     super.dispose();
   }
 
-  // Simple search algorithm to filter emojis based on name
   void _performSearch(String query) {
     if (query.isEmpty) {
       setState(() {
@@ -123,31 +112,21 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
 
   @override
   Widget build(BuildContext context) {
-    final colors = widget.config.emojiViewConfig;
     final catConfig = widget.config.categoryViewConfig;
 
-    return Container(
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        color: colors.backgroundColor,
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          _buildSearchBar(),
+    return Column(
+      children: [
+        _buildSearchBar(),
 
-          Expanded(
-            child: _isSearching
-                ? _buildSearchResultsGrid()
-                : _buildCategoryPageView(),
-          ),
-          _buildBottomCategoryBar(catConfig),
-        ],
-      ),
+        Expanded(
+          child: _isSearching
+              ? _buildSearchResultsGrid()
+              : _buildCategoryPageView(),
+        ),
+        _buildBottomCategoryBar(catConfig),
+      ],
     );
   }
-
-  // --- UI COMPONENTS ---
 
   Widget _buildSearchBar() {
     return Container(

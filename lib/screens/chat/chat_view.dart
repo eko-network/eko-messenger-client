@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:ecp/ecp.dart';
 import 'package:eko_messenger/database/daos/conversations_dao.dart';
@@ -9,13 +10,12 @@ import 'package:eko_messenger/providers/ecp.dart';
 import 'package:eko_messenger/utils/constants.dart' as c;
 import 'package:eko_messenger/utils/emoji_text_style.dart';
 import 'package:eko_messenger/widgets/avatar.dart';
-import 'package:eko_messenger/widgets/emoji_picker.dart';
+import 'package:eko_messenger/widgets/media_picker.dart';
 import 'package:eko_messenger/widgets/message.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:klipy_dart/klipy_dart.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:uuid/uuid.dart';
 
@@ -39,21 +39,51 @@ class ChatView extends ConsumerStatefulWidget {
 class _ChatViewState extends ConsumerState<ChatView> {
   final TextEditingController _messageController = TextEditingController();
   final ShadPopoverController _popoverController = ShadPopoverController();
+  final FocusNode _focusNode = FocusNode();
   final _uuid = Uuid();
   Stream<List<Message>>? _messagesStream;
   Uri? _lastActorId;
   Uri? _lastContactId;
   AppDatabase? _lastDb;
+  bool _showMediaPicker = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        setState(() {
+          _showMediaPicker = false;
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _messageController.dispose();
     _popoverController.dispose();
     super.dispose();
   }
 
-  Future<void> _sendMessage() async {
-    final text = _messageController.text.trim();
+  void _onGifSelected(KlipyResultObject gif) {
+    final url = gif.media.tinyGif?.url ?? gif.media.gif?.url;
+    if (url != null) {
+      _sendMessage(url);
+    }
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      setState(() {
+        _showMediaPicker = false;
+      });
+    } else {
+      _popoverController.toggle();
+    }
+  }
+
+  Future<void> _sendMessage([String? customContent]) async {
+    final text = customContent ?? _messageController.text.trim();
     if (text.isEmpty) return;
 
     final db = ref.read(appDatabaseProvider);
@@ -82,7 +112,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
       ),
     );
 
-    _messageController.clear();
+    if (customContent == null) {
+      _messageController.clear();
+    }
     try {
       final id = await ref
           .read(ecpProvider)
@@ -109,6 +141,74 @@ class _ChatViewState extends ConsumerState<ChatView> {
         MessageStatus.failed,
       );
     }
+  }
+
+  Widget _buildInputRow(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxHeight: 12 * 24.0, // 12 lines * approximate line height
+            ),
+            child: CallbackShortcuts(
+              bindings: {
+                const SingleActivator(LogicalKeyboardKey.enter): () =>
+                    _sendMessage(),
+              },
+              child: TextField(
+                focusNode: _focusNode,
+                style: emojiTextStyle(TextStyle()),
+                controller: _messageController,
+                maxLines: null,
+                minLines: 1,
+                textCapitalization: TextCapitalization.sentences,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                  prefixIcon: IconButton(
+                    icon: const Icon(LucideIcons.smile, size: 24),
+                    onPressed: () {
+                      if (Platform.isAndroid || Platform.isIOS) {
+                        FocusScope.of(context).unfocus();
+                        setState(() {
+                          _showMediaPicker = !_showMediaPicker;
+                        });
+                      } else {
+                        _popoverController.toggle();
+                      }
+                    },
+                  ),
+                  hintText: 'Type a message...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                  fillColor: ShadTheme.of(
+                    context,
+                  ).colorScheme.custom[c.grayMessageColorKey],
+                  filled: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        CircleAvatar(
+          backgroundColor: ShadTheme.of(
+            context,
+          ).colorScheme.custom[c.primaryColorKey],
+          child: IconButton(
+            icon: const Icon(LucideIcons.send, color: Colors.white, size: 20),
+            onPressed: () => _sendMessage(),
+          ),
+        ),
+      ],
+    );
   }
 
   MessagePosition _determinePosition(
@@ -270,85 +370,43 @@ class _ChatViewState extends ConsumerState<ChatView> {
           ),
           SafeArea(
             top: false,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: ShadPopover(
-                decoration: ShadDecoration(
-                  border: ShadBorder.all(color: Colors.transparent),
-                ),
-                controller: _popoverController,
-                anchor: const ShadAnchor(
-                  childAlignment: Alignment.bottomLeft,
-                  overlayAlignment: Alignment.topLeft,
-                  offset: Offset(0, -4),
-                ),
-                popover: (context) => SizedBox(
-                  // width: 380,
-                  // height: 450,
-                  child: StyledEmojiPicker(textController: _messageController),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if (c.isDesktop)
-                      IconButton(
-                        icon: const Icon(LucideIcons.smile, size: 24),
-                        onPressed: _popoverController.toggle,
-                      ),
-                    Expanded(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxHeight:
-                              12 * 24.0, // 12 lines * approximate line height
-                        ),
-                        child: CallbackShortcuts(
-                          bindings: {
-                            const SingleActivator(LogicalKeyboardKey.enter):
-                                _sendMessage,
-                          },
-                          child: TextField(
-                            style: emojiTextStyle(TextStyle()),
-                            controller: _messageController,
-                            maxLines: null,
-                            minLines: 1,
-                            textCapitalization: TextCapitalization.sentences,
-                            keyboardType: TextInputType.multiline,
-                            decoration: InputDecoration(
-                              hintText: 'Type a message...',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide.none,
-                              ),
-                              fillColor: ShadTheme.of(
-                                context,
-                              ).colorScheme.custom[c.grayMessageColorKey],
-                              filled: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: c.isMobile
+                      ? _buildInputRow(context)
+                      : ShadPopover(
+                          decoration: ShadDecoration(
+                            border: ShadBorder.all(color: Colors.transparent),
+                          ),
+                          controller: _popoverController,
+                          anchor: const ShadAnchor(
+                            childAlignment: Alignment.bottomLeft,
+                            overlayAlignment: Alignment.topLeft,
+                            offset: Offset(0, -4),
+                          ),
+                          popover: (context) => SizedBox(
+                            width: 380,
+                            height: 450,
+                            child: MediaPicker(
+                              textController: _messageController,
+                              onGifSelected: _onGifSelected,
                             ),
                           ),
+                          child: _buildInputRow(context),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    CircleAvatar(
-                      backgroundColor: ShadTheme.of(
-                        context,
-                      ).colorScheme.custom[c.primaryColorKey],
-                      child: IconButton(
-                        icon: const Icon(
-                          LucideIcons.send,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        onPressed: _sendMessage,
-                      ),
-                    ),
-                  ],
                 ),
-              ),
+                if ((c.isMobile) && _showMediaPicker)
+                  SizedBox(
+                    height: 400,
+                    child: MediaPicker(
+                      textController: _messageController,
+                      onGifSelected: _onGifSelected,
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
