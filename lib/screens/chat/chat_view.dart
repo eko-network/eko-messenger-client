@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:drift/drift.dart' show Value;
 import 'package:ecp/ecp.dart' as ecp;
 import 'package:eko_messenger/database/daos/conversations_dao.dart';
 import 'package:eko_messenger/database/database.dart';

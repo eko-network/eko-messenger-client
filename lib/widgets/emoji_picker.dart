@@ -109,14 +109,9 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
 
       final headerTop = headerBox.localToGlobal(Offset.zero).dy;
 
-      // If this header is above the threshold (listTop + buffer), it's a candidate.
-      // Since we iterate in order, the last one that satisfies this condition
-      // is the one currently "controlling" the view (the one we scrolled past).
       if (headerTop <= listTop + buffer) {
         activeIndex = i;
       } else {
-        // Since headers are ordered, once we find one below the threshold,
-        // no subsequent header can be above it.
         break;
       }
     }
@@ -177,7 +172,6 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
   Widget build(BuildContext context) {
     final catConfig = widget.config.categoryViewConfig;
 
-    // Ensure keys match categories if they change (unlikely but safe)
     if (_categoryKeys.length != widget.state.categoryEmoji.length) {
       _categoryKeys.clear();
       for (var i = 0; i < widget.state.categoryEmoji.length; i++) {
@@ -234,7 +228,6 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
             ),
           ),
         ],
-        // Add some bottom padding so the last category can scroll up
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
       ],
     );
@@ -263,7 +256,7 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 0),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0), // Fully rounded pill
+            borderRadius: BorderRadius.circular(30.0),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(

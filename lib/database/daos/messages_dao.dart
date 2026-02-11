@@ -106,17 +106,6 @@ class MessagesDao extends DatabaseAccessor<AppDatabase>
         .write(MessagesCompanion(status: Value(status)));
   }
 
-  Stream<List<Message>> watchMessagesForConversation(Uri contactId, Uri myId) {
-    return (select(messages)
-          ..where(
-            (tbl) =>
-                (tbl.to.equals('$contactId') & tbl.from.equals('$myId')) |
-                (tbl.from.equals('$contactId') & tbl.to.equals('$myId')),
-          )
-          ..orderBy([(u) => OrderingTerm.asc(u.time)]))
-        .watch();
-  }
-
   Stream<List<MessageWithAttachments>>
   watchMessagesWithAttachmentForConversation(Uri contactId, Uri myId) {
     final query =
