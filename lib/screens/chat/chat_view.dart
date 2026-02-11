@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:ecp/ecp.dart' as ecp;
 import 'package:eko_messenger/database/daos/conversations_dao.dart';
 import 'package:eko_messenger/database/database.dart';
+import 'package:eko_messenger/database/models/message_with_attachments.dart';
 import 'package:eko_messenger/database/type_converters.dart';
 import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/database.dart';
@@ -41,12 +42,12 @@ class _ChatViewState extends ConsumerState<ChatView> {
   final ShadPopoverController _popoverController = ShadPopoverController();
   final FocusNode _focusNode = FocusNode();
   final _uuid = Uuid();
-  Stream<List<Message>>? _messagesStream;
+  Stream<List<MessageWithAttachments>>? _messagesStream;
   Uri? _lastActorId;
   Uri? _lastContactId;
   AppDatabase? _lastDb;
   bool _showMediaPicker = false;
-  final Map<Uri, ecp.Image> _selectedGifs = {};
+  Map<Uri, ecp.Image> _selectedGifs = {};
 
   @override
   void initState() {
@@ -80,7 +81,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
         url: url,
         height: obj.dimensions.height.round(),
         width: obj.dimensions.width.round(),
-
+        mediaType: "image/gif",
         name: gif.title,
       );
     });
@@ -92,11 +93,11 @@ class _ChatViewState extends ConsumerState<ChatView> {
     if (text.isEmpty && gifs.isEmpty) return;
     _messageController.clear();
     setState(() {
-      _selectedGifs.clear();
+      _selectedGifs = {};
     });
 
     if (text.isEmpty && gifs.length == 1) {
-      _dispatchMessage(gifs.first);
+      await _dispatchMessage(gifs.first);
     }
     await _dispatchMessage(
       ecp.Note(
@@ -122,7 +123,12 @@ class _ChatViewState extends ConsumerState<ChatView> {
     final from = authInfo.actor.id;
     final to = widget.conversation.contact.id;
 
-    await db.messagesDao.insertNewMessage(object, MessageStatus.sending);
+    await db.messagesDao.insertNewMessage(
+      object,
+      MessageStatus.sending,
+      from: from,
+      to: to,
+    );
 
     try {
       final id = await ref
@@ -344,10 +350,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
       _lastActorId = actorId;
       _lastContactId = contactId;
       _lastDb = db;
-      _messagesStream = db.messagesDao.watchMessagesForConversation(
-        contactId,
-        actorId,
-      );
+      _messagesStream = db.messagesDao
+          .watchMessagesWithAttachmentForConversation(contactId, actorId);
     }
 
     return Scaffold(
@@ -375,7 +379,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<Message>>(
+            child: StreamBuilder<List<MessageWithAttachments>>(
               stream: _messagesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -398,11 +402,15 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final int chronoIndex = messages.length - 1 - index;
-                    final message = messages[chronoIndex];
+                    final message = messages[chronoIndex].message;
                     final isReceived = message.from != authInfo.actor.id;
 
-                    final prevMsg = messages.getOrNull(chronoIndex - 1);
-                    final nextMsg = messages.getOrNull(chronoIndex + 1);
+                    final prevMsg = messages
+                        .getOrNull(chronoIndex - 1)
+                        ?.message;
+                    final nextMsg = messages
+                        .getOrNull(chronoIndex + 1)
+                        ?.message;
 
                     // These are only for grouping
                     final DateTime? prevTime = (prevMsg?.from == message.from)
@@ -427,7 +435,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
                     final messageWidget = MessageWidget(
                       isReceived: isReceived,
-                      message: message,
+                      messageWithAttachments: messages[chronoIndex],
                       position: _determinePosition(
                         prevTime,
                         message.time,

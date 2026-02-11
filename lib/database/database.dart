@@ -22,6 +22,7 @@ import 'package:uuid/uuid_value.dart';
 import 'tables/auth.dart';
 import 'tables/ecp.dart';
 import 'tables/messages.dart';
+import 'tables/media.dart';
 
 // Import DAOs
 import 'daos/messages_dao.dart';
@@ -43,6 +44,7 @@ part '../generated/database/database.g.dart';
     AuthInfoTable,
     // Other
     Messages,
+    Media,
     Contacts,
     Conversations,
   ],
@@ -52,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {

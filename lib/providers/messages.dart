@@ -174,14 +174,14 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
               if (note.content != null) {
                 notification = note.content!;
               } else if (note.attachments?.isNotEmpty ?? false) {
-                notification = '🖼️ Image';
+                notification = '📷 Image';
               } else {
                 notification = 'New Message';
               }
               break;
 
             case Image _:
-              notification = '🖼️ Image';
+              notification = '📷 Image';
 
             default:
               notification = 'New Message';
@@ -195,6 +195,8 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
         await db.messagesDao.insertNewMessage(
           create.object,
           MessageStatus.delivered,
+          from: activity.actor,
+          to: create.base.to,
         );
         break;
       case Delivered delivered:

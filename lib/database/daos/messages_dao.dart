@@ -3,35 +3,78 @@ import 'package:ecp/ecp.dart';
 import 'package:eko_messenger/database/tables/conversations.dart';
 import 'package:eko_messenger/database/type_converters.dart';
 import 'package:uuid/uuid_value.dart';
+import 'package:flutter/foundation.dart';
 
 import '../database.dart';
 import '../tables/messages.dart';
+import '../tables/media.dart';
+import '../models/message_with_attachments.dart';
 
 part '../../generated/database/daos/messages_dao.g.dart';
 
-@DriftAccessor(tables: [Messages, Conversations])
+@DriftAccessor(tables: [Messages, Conversations, Media])
 class MessagesDao extends DatabaseAccessor<AppDatabase>
     with _$MessagesDaoMixin {
   MessagesDao(super.db);
 
   Future<void> insertNewMessage(
     ActivityPubObject message,
-    MessageStatus status,
-  ) async {
-    //FIXME
-    // await into(messages).insert(message);
-    // await (update(conversations)
-    //       ..where((tbl) => tbl.participant.equals(message.to.value.toString())))
-    //     .write(
-    //       ConversationsCompanion(
-    //         lastMessageTime: Value(message.time.value),
-    //         // This needs to change when images are added
-    //         // maybe take a substring too?
-    //         lastMessageContent: Value(
-    //           "${message.content.value?.replaceAll("\n", " ")}",
-    //         ),
-    //       ),
-    //     );
+    MessageStatus status, {
+    required Uri from,
+    required Uri to,
+  }) async {
+    String? content;
+    List<Image> images = [];
+
+    if (message is Note) {
+      content = message.content;
+      if (message.attachments != null) {
+        for (final attachment in message.attachments!) {
+          debugPrint('Attachment runtime type: ${attachment.runtimeType}');
+        }
+        images = message.attachments!.whereType<Image>().toList();
+      }
+    } else if (message is Image) {
+      images.add(message);
+    }
+
+    await into(messages).insert(
+      MessagesCompanion(
+        id: Value(message.base.id),
+        to: Value(to),
+        from: Value(from),
+        content: Value(content),
+        time: Value(DateTime.now()),
+        status: Value(status),
+      ),
+    );
+
+    for (final img in images) {
+      debugPrint('saving ${images.length} media items');
+      await into(media).insert(
+        MediaCompanion(
+          messageId: Value(message.base.id),
+          url: Value(img.url),
+          width: Value(img.width),
+          height: Value(img.height),
+          contentType: Value(img.mediaType),
+        ),
+      );
+    }
+
+    // probably shoudl move to id
+    final snippet = (content != null && content.isNotEmpty)
+        ? content.replaceAll("\n", " ")
+        : (images.isNotEmpty ? "📷 Image" : "");
+
+    await (update(
+      conversations,
+    )..where((tbl) => tbl.participant.equals(to.toString()))).write(
+      ConversationsCompanion(
+        lastMessageTime: Value(DateTime.now()),
+        lastMessageContent: Value(snippet),
+      ),
+    );
   }
 
   Future<void> markMessageSent(UuidValue messageId, Uri envelopeId) async {
@@ -63,26 +106,6 @@ class MessagesDao extends DatabaseAccessor<AppDatabase>
         .write(MessagesCompanion(status: Value(status)));
   }
 
-  Future<List<Message>> getMessagesForUser(
-    String userId,
-    int pageSize,
-    DateTime startAfter,
-  ) {
-    return (select(messages)
-          ..orderBy([(u) => OrderingTerm.desc(u.time)])
-          ..where((tbl) => tbl.to.equals(userId) | tbl.from.equals(userId))
-          ..where((tbl) => tbl.time.isSmallerThan(Constant(startAfter)))
-          ..limit(pageSize))
-        .get();
-  }
-
-  Stream<List<Message>> watchMessagesForUser(String userId) {
-    return (select(messages)
-          ..where((tbl) => tbl.to.equals(userId) | tbl.from.equals(userId))
-          ..orderBy([(u) => OrderingTerm.asc(u.time)]))
-        .watch();
-  }
-
   Stream<List<Message>> watchMessagesForConversation(Uri contactId, Uri myId) {
     return (select(messages)
           ..where(
@@ -92,5 +115,44 @@ class MessagesDao extends DatabaseAccessor<AppDatabase>
           )
           ..orderBy([(u) => OrderingTerm.asc(u.time)]))
         .watch();
+  }
+
+  Stream<List<MessageWithAttachments>>
+  watchMessagesWithAttachmentForConversation(Uri contactId, Uri myId) {
+    final query =
+        select(
+            messages,
+          ).join([leftOuterJoin(media, media.messageId.equalsExp(messages.id))])
+          ..where(
+            (messages.to.equals('$contactId') & messages.from.equals('$myId')) |
+                (messages.from.equals('$contactId') &
+                    messages.to.equals('$myId')),
+          )
+          ..orderBy([OrderingTerm.asc(messages.time)]);
+
+    return query.watch().map((rows) {
+      final Map<Message, List<MediaData>> groupedData = {};
+
+      for (final row in rows) {
+        final message = row.readTable(messages);
+        final mediaItem = row.readTableOrNull(media);
+
+        if (!groupedData.containsKey(message)) {
+          groupedData[message] = [];
+        }
+        if (mediaItem != null) {
+          groupedData[message]!.add(mediaItem);
+        }
+      }
+
+      return groupedData.entries
+          .map(
+            (entry) => MessageWithAttachments(
+              message: entry.key,
+              attachments: entry.value,
+            ),
+          )
+          .toList();
+    });
   }
 }

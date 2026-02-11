@@ -1,4 +1,5 @@
 import 'package:eko_messenger/database/database.dart';
+import 'package:eko_messenger/database/models/message_with_attachments.dart';
 import 'package:eko_messenger/database/type_converters.dart';
 import 'package:eko_messenger/providers/time.dart';
 import 'package:eko_messenger/utils/constants.dart' as c;
@@ -6,6 +7,7 @@ import 'package:eko_messenger/utils/emoji_text_style.dart';
 import 'package:eko_messenger/widgets/time.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 bool _isShortEmojiString(String text) {
@@ -122,8 +124,6 @@ BorderRadius _posToBorder(MessagePosition pos, bool isReceived) {
   const double big = 16.0;
   const double small = 4.0;
 
-  // 1. Determine which side should have the "grouping" effect
-  // Received = Left side is flat/sharp | Sent = Right side is flat/sharp
   final bool isTopFlattened =
       pos == MessagePosition.middle || pos == MessagePosition.bottom;
   final bool isBottomFlattened =
@@ -141,80 +141,162 @@ BorderRadius _posToBorder(MessagePosition pos, bool isReceived) {
 
 class MessageWidget extends StatelessWidget {
   final bool isReceived;
-  final Message message;
+  final MessageWithAttachments messageWithAttachments;
   final MessagePosition position;
+
   const MessageWidget({
     super.key,
     required this.isReceived,
-    required this.message,
+    required this.messageWithAttachments,
     this.position = MessagePosition.single,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    final isShortEmojiString = message.content != null
-        ? _isShortEmojiString(message.content!)
-        : false;
-
-    final Color backgroundColor;
-
-    if (isShortEmojiString) {
-      backgroundColor = Colors.transparent;
-    } else {
-      backgroundColor = isReceived
-          ? theme.colorScheme.custom[c.grayMessageColorKey]!
-          : theme.colorScheme.custom[c.primaryColorKey]!;
-    }
+    final message = messageWithAttachments.message;
+    final content = message.content?.trim();
+    final hasContent = content?.isNotEmpty ?? false;
     final isBottom =
         position == MessagePosition.single ||
         position == MessagePosition.bottom;
 
+    final isEmojiOnly =
+        hasContent &&
+        messageWithAttachments.attachments.isEmpty &&
+        _isShortEmojiString(content!);
+
+    final backgroundColor = isReceived
+        ? theme.colorScheme.custom[c.grayMessageColorKey]!
+        : theme.colorScheme.custom[c.primaryColorKey]!;
+
     return Align(
       alignment: isReceived ? Alignment.centerLeft : Alignment.centerRight,
-      child: Container(
-        margin: EdgeInsets.only(bottom: isBottom ? 12 : 4),
-        constraints: BoxConstraints(
-          // Ensure the bubble doesn't take full width unless necessary
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: _posToBorder(position, isReceived),
-        ),
-        child: isShortEmojiString
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: isReceived
-                    ? CrossAxisAlignment.start
-                    : CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    message.content ?? "No content",
-                    style: emojiTextStyle(
-                      TextStyle(fontSize: 32, color: Colors.white),
-                    ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: isReceived
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.end,
+        children: [
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: messageWithAttachments.attachments.isNotEmpty
+                  ? 400
+                  : MediaQuery.of(context).size.width * 0.75,
+            ),
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              borderRadius: _posToBorder(position, isReceived),
+              color: isEmojiOnly ? Colors.transparent : backgroundColor,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: isReceived
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.end,
+              children: [
+                if (messageWithAttachments.attachments.isNotEmpty)
+                  _AttachmentGrid(
+                    attachments: messageWithAttachments.attachments,
                   ),
-                  if (isBottom)
-                    StatusWidget(message: message, isReceived: isReceived),
-                ],
-              )
-            : Wrap(
-                alignment: WrapAlignment.end,
-                crossAxisAlignment: WrapCrossAlignment.end,
-                runAlignment: WrapAlignment.end,
-                spacing: 8, // Horizontal space between text and icon
-                runSpacing: 4, // Vertical space if the icon wraps to a new line
-                children: [
-                  Text(
-                    message.content ?? "No content",
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                if (hasContent)
+                  _TextBubbleContent(
+                    content: content!,
+                    isEmojiOnly: isEmojiOnly,
+                    showStatus: isBottom,
+                    message: message,
+                    isReceived: isReceived,
                   ),
-                  if (isBottom)
-                    StatusWidget(message: message, isReceived: isReceived),
-                ],
+              ],
+            ),
+          ),
+          if (!hasContent && isBottom)
+            Padding(
+              padding: const EdgeInsets.only(top: 5, bottom: 10),
+              child: StatusWidget(message: message, isReceived: isReceived),
+            ),
+          SizedBox(height: isBottom ? 12 : 4),
+        ],
+      ),
+    );
+  }
+}
+
+class _TextBubbleContent extends StatelessWidget {
+  final String content;
+  final bool isEmojiOnly;
+  final bool showStatus;
+  final Message message;
+  final bool isReceived;
+
+  const _TextBubbleContent({
+    required this.content,
+    required this.isEmojiOnly,
+    required this.showStatus,
+    required this.message,
+    required this.isReceived,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        crossAxisAlignment: WrapCrossAlignment.end,
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          Text(
+            content,
+            style: emojiTextStyle(
+              TextStyle(fontSize: isEmojiOnly ? 32 : 14, color: Colors.white),
+            ),
+          ),
+          if (showStatus)
+            StatusWidget(message: message, isReceived: isReceived),
+        ],
+      ),
+    );
+  }
+}
+
+class _AttachmentGrid extends StatelessWidget {
+  final List<MediaData> attachments;
+  const _AttachmentGrid({required this.attachments});
+
+  @override
+  Widget build(BuildContext context) {
+    if (attachments.length == 1) {
+      return Image.network(
+        attachments.first.url.toString(),
+        fit: BoxFit.cover,
+        width: double.infinity, // Let parent constraints decide
+      );
+    }
+
+    return Container(
+      color: ShadTheme.of(context).colorScheme.background,
+      child: StaggeredGrid.count(
+        crossAxisCount: 2,
+        mainAxisSpacing: 4,
+        crossAxisSpacing: 4,
+        children: List.generate(attachments.length, (index) {
+          final isFirstFullWidth = attachments.length % 2 != 0 && index == 0;
+          final crossAxisCount = isFirstFullWidth ? 2 : 1;
+
+          return StaggeredGridTile.count(
+            crossAxisCellCount: crossAxisCount,
+            mainAxisCellCount: isFirstFullWidth ? 1.2 : 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                attachments[index].url.toString(),
+                fit: BoxFit.cover,
               ),
+            ),
+          );
+        }),
       ),
     );
   }
