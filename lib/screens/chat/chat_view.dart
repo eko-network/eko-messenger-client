@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:drift/drift.dart' show Value;
-import 'package:ecp/ecp.dart';
+import 'package:ecp/ecp.dart' as ecp;
 import 'package:eko_messenger/database/daos/conversations_dao.dart';
 import 'package:eko_messenger/database/database.dart';
 import 'package:eko_messenger/database/type_converters.dart';
@@ -46,6 +46,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Uri? _lastContactId;
   AppDatabase? _lastDb;
   bool _showMediaPicker = false;
+  final Map<Uri, ecp.Image> _selectedGifs = {};
 
   @override
   void initState() {
@@ -68,53 +69,61 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   void _onGifSelected(KlipyResultObject gif) {
-    final url = gif.media.tinyGif?.url ?? gif.media.gif?.url;
-    if (url != null) {
-      _sendMessage(url);
+    final obj = gif.media.tinyGif ?? gif.media.gif;
+    if (obj == null) {
+      return;
     }
+    setState(() {
+      final url = Uri.parse(obj.url);
+      _selectedGifs[url] = ecp.Image(
+        base: ecp.ObjectBase(id: _uuid.v4obj()),
+        url: url,
+        height: obj.dimensions.height.round(),
+        width: obj.dimensions.width.round(),
 
-    if (Platform.isAndroid || Platform.isIOS) {
-      setState(() {
-        _showMediaPicker = false;
-      });
-    } else {
-      _popoverController.toggle();
-    }
+        name: gif.title,
+      );
+    });
   }
 
-  Future<void> _sendMessage([String? customContent]) async {
-    final text = customContent ?? _messageController.text.trim();
-    if (text.isEmpty) return;
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    final gifs = _selectedGifs.values;
+    if (text.isEmpty && gifs.isEmpty) return;
+    _messageController.clear();
+    setState(() {
+      _selectedGifs.clear();
+    });
 
+    if (text.isEmpty && gifs.length == 1) {
+      _dispatchMessage(gifs.first);
+    }
+    await _dispatchMessage(
+      ecp.Note(
+        content: text,
+        base: ecp.ObjectBase(id: _uuid.v4obj()),
+        attachments: gifs.isEmpty ? null : gifs.toList(),
+      ),
+    );
+  }
+
+  Future<void> _dispatchMessage(ecp.ActivityPubObject object) async {
     final db = ref.read(appDatabaseProvider);
     final authInfo = ref.read(authProvider).info;
     if (authInfo == null) return;
-    final activity = Create(
-      base: ActivityBase(id: _uuid.v4obj(), to: widget.conversation.contact.id),
-      object: Note(
-        content: text,
-        base: ObjectBase(id: _uuid.v4obj()),
+    final activity = ecp.Create(
+      base: ecp.ActivityBase(
+        id: _uuid.v4obj(),
+        to: widget.conversation.contact.id,
       ),
+      object: object,
     );
 
     final from = authInfo.actor.id;
     final to = widget.conversation.contact.id;
 
-    // Insert message to database with 'sending' status
-    await db.messagesDao.insertNewMessage(
-      MessagesCompanion(
-        id: Value(activity.object.base.id),
-        to: Value(to),
-        from: Value(from),
-        content: Value(text),
-        time: Value(DateTime.now()),
-        status: Value(MessageStatus.sending),
-      ),
-    );
+    await db.messagesDao.insertNewMessage(object, MessageStatus.sending);
 
-    if (customContent == null) {
-      _messageController.clear();
-    }
     try {
       final id = await ref
           .read(ecpProvider)
@@ -148,52 +157,124 @@ class _ChatViewState extends ConsumerState<ChatView> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxHeight: 12 * 24.0, // 12 lines * approximate line height
+          child: Container(
+            decoration: BoxDecoration(
+              color: ShadTheme.of(
+                context,
+              ).colorScheme.custom[c.grayMessageColorKey],
+              borderRadius: BorderRadius.circular(24),
             ),
-            child: CallbackShortcuts(
-              bindings: {
-                const SingleActivator(LogicalKeyboardKey.enter): () =>
-                    _sendMessage(),
-              },
-              child: TextField(
-                focusNode: _focusNode,
-                style: emojiTextStyle(TextStyle()),
-                controller: _messageController,
-                maxLines: null,
-                minLines: 1,
-                textCapitalization: TextCapitalization.sentences,
-                keyboardType: TextInputType.multiline,
-                decoration: InputDecoration(
-                  prefixIcon: IconButton(
-                    icon: const Icon(LucideIcons.smile, size: 24),
-                    onPressed: () {
-                      if (Platform.isAndroid || Platform.isIOS) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _showMediaPicker = !_showMediaPicker;
-                        });
-                      } else {
-                        _popoverController.toggle();
-                      }
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_selectedGifs.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 12,
+                      bottom: 4,
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: _selectedGifs.entries.map((entry) {
+                          final url = entry.key;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: SizedBox(
+                                    height: 80,
+                                    width: 80,
+                                    child: Image.network(
+                                      url.toString(),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () {
+                                      setState(() {
+                                        _selectedGifs.remove(url);
+                                      });
+                                    },
+                                    icon: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.x,
+                                        size: 14,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxHeight: 12 * 24.0, // 12 lines * approximate line height
+                  ),
+                  child: CallbackShortcuts(
+                    bindings: {
+                      const SingleActivator(LogicalKeyboardKey.enter): () =>
+                          _sendMessage(),
                     },
-                  ),
-                  hintText: 'Type a message...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  fillColor: ShadTheme.of(
-                    context,
-                  ).colorScheme.custom[c.grayMessageColorKey],
-                  filled: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                    child: TextField(
+                      focusNode: _focusNode,
+                      style: emojiTextStyle(TextStyle()),
+                      controller: _messageController,
+                      maxLines: null,
+                      minLines: 1,
+                      textCapitalization: TextCapitalization.sentences,
+                      keyboardType: TextInputType.multiline,
+                      decoration: InputDecoration(
+                        prefixIcon: IconButton(
+                          icon: const Icon(LucideIcons.smile, size: 24),
+                          onPressed: () {
+                            if (Platform.isAndroid || Platform.isIOS) {
+                              FocusScope.of(context).unfocus();
+                              setState(() {
+                                _showMediaPicker = !_showMediaPicker;
+                              });
+                            } else {
+                              _popoverController.toggle();
+                            }
+                          },
+                        ),
+                        hintText: 'Type a message...',
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ),

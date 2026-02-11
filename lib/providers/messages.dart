@@ -6,7 +6,7 @@ import 'package:eko_messenger/providers/database.dart';
 import 'package:eko_messenger/providers/ecp.dart';
 import 'package:eko_messenger/services/notification_service.dart';
 import 'package:eko_messenger/utils/constants.dart' as c;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide Image;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:eko_messenger/providers/auth.dart';
 import 'package:drift/drift.dart';
@@ -136,62 +136,66 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
     // Only handle Create StableActivity for now
     switch (activity.activity) {
       case Create create:
-        switch (create.object) {
-          case Note note:
-            final db = ref.read(appDatabaseProvider);
+        final db = ref.read(appDatabaseProvider);
 
-            final Uri otherParty;
-            if (me.id == activity.actor) {
-              otherParty = create.base.to;
-            } else {
-              otherParty = activity.actor;
-            }
-
-            // Ensure contact exists
-            var contact = await db.contactsDao.getContactById(otherParty);
-            if (contact == null) {
-              try {
-                final person = await ref.read(ecpProvider).getActor(otherParty);
-                await db.contactsDao.insertNewContact(person);
-                contact = person;
-              } catch (e) {
-                debugPrint('Could not fetch remote actor $otherParty: $e');
-                return; // Skip if we can't get actor details
-              }
-            }
-
-            // Ensure conversation exists
-            final conversation = await db.conversationsDao
-                .getConversationByParticipant(otherParty);
-            if (conversation == null) {
-              await db.conversationsDao.insertNewConversation(
-                ConversationsCompanion(participant: Value(otherParty)),
-              );
-            }
-            debugPrint("Processed message, notifiable: $notifiable");
-            if (notifiable && me.id != activity.actor) {
-              // TODO discard malformed objects
-              _notificationService.showNewMessageNotification(
-                from: contact.preferredUsername,
-                message: note.content ?? 'message',
-              );
-            }
-            await db.messagesDao.insertNewMessage(
-              MessagesCompanion(
-                envelopeId: Value(activity.id),
-                id: Value(note.base.id),
-                to: Value(create.base.to),
-                from: Value(activity.actor),
-                time: Value(DateTime.now()),
-                content: Value(note.content),
-                status: Value(MessageStatus.delivered),
-                inReplyTo: Value(note.base.inReplyTo),
-              ),
-            );
-            break;
-          default:
-            debugPrint('Unknown object: ${create.object.type}}');
+        final Uri otherParty;
+        if (me.id == activity.actor) {
+          otherParty = create.base.to;
+        } else {
+          otherParty = activity.actor;
         }
+
+        // Ensure contact exists
+        var contact = await db.contactsDao.getContactById(otherParty);
+        if (contact == null) {
+          try {
+            final person = await ref.read(ecpProvider).getActor(otherParty);
+            await db.contactsDao.insertNewContact(person);
+            contact = person;
+          } catch (e) {
+            debugPrint('Could not fetch remote actor $otherParty: $e');
+            return; // Skip if we can't get actor details
+          }
+        }
+
+        // Ensure conversation exists
+        final conversation = await db.conversationsDao
+            .getConversationByParticipant(otherParty);
+        if (conversation == null) {
+          await db.conversationsDao.insertNewConversation(
+            ConversationsCompanion(participant: Value(otherParty)),
+          );
+        }
+        debugPrint("Processed message, notifiable: $notifiable");
+        if (notifiable && me.id != activity.actor) {
+          final String notification;
+          switch (create.object) {
+            case Note note:
+              if (note.content != null) {
+                notification = note.content!;
+              } else if (note.attachments?.isNotEmpty ?? false) {
+                notification = '🖼️ Image';
+              } else {
+                notification = 'New Message';
+              }
+              break;
+
+            case Image _:
+              notification = '🖼️ Image';
+
+            default:
+              notification = 'New Message';
+          }
+          // TODO discard malformed objects
+          _notificationService.showNewMessageNotification(
+            from: contact.preferredUsername,
+            message: notification,
+          );
+        }
+        await db.messagesDao.insertNewMessage(
+          create.object,
+          MessageStatus.delivered,
+        );
         break;
       case Delivered delivered:
         final db = ref.read(appDatabaseProvider);

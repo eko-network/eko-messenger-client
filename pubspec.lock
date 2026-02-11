@@ -300,11 +300,9 @@ packages:
   ecp:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "282b537f02dc6f4dd07da57dadbc1e5f9346b531"
-      resolved-ref: "282b537f02dc6f4dd07da57dadbc1e5f9346b531"
-      url: "https://github.com/eko-network/ecp-dart-sdk"
-    source: git
+      path: "../ecp-dart-sdk"
+      relative: true
+    source: path
     version: "0.0.1"
   ed25519_edwards:
     dependency: transitive

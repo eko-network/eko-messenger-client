@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:ecp/ecp.dart';
 import 'package:eko_messenger/database/tables/conversations.dart';
 import 'package:eko_messenger/database/type_converters.dart';
 import 'package:uuid/uuid_value.dart';
@@ -13,20 +14,24 @@ class MessagesDao extends DatabaseAccessor<AppDatabase>
     with _$MessagesDaoMixin {
   MessagesDao(super.db);
 
-  Future<void> insertNewMessage(MessagesCompanion message) async {
-    await into(messages).insert(message);
-    await (update(conversations)
-          ..where((tbl) => tbl.participant.equals(message.to.value.toString())))
-        .write(
-          ConversationsCompanion(
-            lastMessageTime: Value(message.time.value),
-            // This needs to change when images are added
-            // maybe take a substring too?
-            lastMessageContent: Value(
-              "${message.content.value?.replaceAll("\n", " ")}",
-            ),
-          ),
-        );
+  Future<void> insertNewMessage(
+    ActivityPubObject message,
+    MessageStatus status,
+  ) async {
+    //FIXME
+    // await into(messages).insert(message);
+    // await (update(conversations)
+    //       ..where((tbl) => tbl.participant.equals(message.to.value.toString())))
+    //     .write(
+    //       ConversationsCompanion(
+    //         lastMessageTime: Value(message.time.value),
+    //         // This needs to change when images are added
+    //         // maybe take a substring too?
+    //         lastMessageContent: Value(
+    //           "${message.content.value?.replaceAll("\n", " ")}",
+    //         ),
+    //       ),
+    //     );
   }
 
   Future<void> markMessageSent(UuidValue messageId, Uri envelopeId) async {
