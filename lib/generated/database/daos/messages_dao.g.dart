@@ -7,4 +7,5 @@ mixin _$MessagesDaoMixin on DatabaseAccessor<AppDatabase> {
   $MessagesTable get messages => attachedDatabase.messages;
   $ContactsTable get contacts => attachedDatabase.contacts;
   $ConversationsTable get conversations => attachedDatabase.conversations;
+  $MediaTable get media => attachedDatabase.media;
 }

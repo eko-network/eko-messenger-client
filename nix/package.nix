@@ -20,7 +20,7 @@ in
     autoPubspecLock = ../pubspec.lock;
 
     gitHashes = {
-      ecp = "sha256-EyQ0ErbxPXsMu4g03msUM0xrwM6Xe2r3sWHBYlr5E8s=";
+      ecp = "sha256-d+ZwNPB2iQTQek8F6RdQT26UAcgMFTQ54B5Vv7U7Vi8=";
     };
 
     buildInputs = with pkgs; [

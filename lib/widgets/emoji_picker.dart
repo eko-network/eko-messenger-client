@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-// 1. The Wrapper Widget
 class StyledEmojiPicker extends StatefulWidget {
   final TextEditingController textController;
 
@@ -15,23 +14,17 @@ class StyledEmojiPicker extends StatefulWidget {
 }
 
 class _StyledEmojiPickerState extends State<StyledEmojiPicker> {
-  // Signal Color Palette
-
   @override
   Widget build(BuildContext context) {
     final Color backgroundColor = ShadTheme.of(context).colorScheme.muted;
     final Color iconColor = ShadTheme.of(context).colorScheme.mutedForeground;
     final Color iconSelectedColor = ShadTheme.of(context).colorScheme.primary;
     return SizedBox(
-      width: 480,
-      height: 580,
       child: EmojiPicker(
         textEditingController: widget.textController,
-        // Pass our custom view builder
         customWidget: (config, state, showSearchView) =>
             _StyledEmojiLayout(config, state, showSearchView),
         config: Config(
-          // height: 350,
           checkPlatformCompatibility: true,
           emojiViewConfig: EmojiViewConfig(
             backgroundColor: backgroundColor,
@@ -43,7 +36,6 @@ class _StyledEmojiPickerState extends State<StyledEmojiPicker> {
                     : 1.0),
             recentsLimit: 28,
           ),
-          // We configure category icons here to use them in our custom bottom bar
           categoryViewConfig: CategoryViewConfig(
             backgroundColor: backgroundColor,
             iconColor: iconColor,
@@ -55,7 +47,6 @@ class _StyledEmojiPickerState extends State<StyledEmojiPicker> {
   }
 }
 
-// 2. The Custom View Implementation
 class _StyledEmojiLayout extends EmojiPickerView {
   const _StyledEmojiLayout(super.config, super.state, super.showSearchBar);
 
@@ -66,12 +57,14 @@ class _StyledEmojiLayout extends EmojiPickerView {
 class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late PageController _pageController;
+  late ScrollController _scrollController;
   late TextEditingController _searchController;
+  final List<GlobalKey> _categoryKeys = [];
+  final GlobalKey _scrollViewKey = GlobalKey();
 
-  // To handle search state
   List<Emoji> _searchResults = [];
   bool _isSearching = false;
+  bool _isProgrammaticScroll = false;
 
   @override
   void initState() {
@@ -80,25 +73,79 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
       length: widget.state.categoryEmoji.length,
       vsync: this,
     );
-    _pageController = PageController();
+    _scrollController = ScrollController();
     _searchController = TextEditingController();
 
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        _pageController.jumpToPage(_tabController.index);
+    // Initialize keys for each category
+    for (var i = 0; i < widget.state.categoryEmoji.length; i++) {
+      _categoryKeys.add(GlobalKey());
+    }
+
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_isProgrammaticScroll) return;
+    if (_isSearching) return;
+
+    final scrollViewContext = _scrollViewKey.currentContext;
+    if (scrollViewContext == null) return;
+
+    final renderBox = scrollViewContext.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final listTop = renderBox.localToGlobal(Offset.zero).dy;
+    final buffer = 50.0;
+
+    int activeIndex = 0;
+
+    for (int i = 0; i < _categoryKeys.length; i++) {
+      final key = _categoryKeys[i];
+      final context = key.currentContext;
+      if (context == null) continue;
+
+      final headerBox = context.findRenderObject() as RenderBox?;
+      if (headerBox == null) continue;
+
+      final headerTop = headerBox.localToGlobal(Offset.zero).dy;
+
+      if (headerTop <= listTop + buffer) {
+        activeIndex = i;
+      } else {
+        break;
       }
-    });
+    }
+
+    if (_tabController.index != activeIndex) {
+      _tabController.animateTo(activeIndex);
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _pageController.dispose();
+    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  // Simple search algorithm to filter emojis based on name
+  void _scrollToCategory(int index) {
+    if (index < 0 || index >= _categoryKeys.length) return;
+
+    final key = _categoryKeys[index];
+    final context = key.currentContext;
+
+    if (context != null) {
+      _isProgrammaticScroll = true;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignment: 0.0, // Align to top
+      ).then((_) => _isProgrammaticScroll = false);
+    }
+  }
+
   void _performSearch(String query) {
     if (query.isEmpty) {
       setState(() {
@@ -123,31 +170,68 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
 
   @override
   Widget build(BuildContext context) {
-    final colors = widget.config.emojiViewConfig;
     final catConfig = widget.config.categoryViewConfig;
 
-    return Container(
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        color: colors.backgroundColor,
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          _buildSearchBar(),
+    if (_categoryKeys.length != widget.state.categoryEmoji.length) {
+      _categoryKeys.clear();
+      for (var i = 0; i < widget.state.categoryEmoji.length; i++) {
+        _categoryKeys.add(GlobalKey());
+      }
+    }
 
-          Expanded(
-            child: _isSearching
-                ? _buildSearchResultsGrid()
-                : _buildCategoryPageView(),
-          ),
-          _buildBottomCategoryBar(catConfig),
-        ],
-      ),
+    return Column(
+      children: [
+        _buildSearchBar(),
+
+        Expanded(
+          child: _isSearching
+              ? _buildSearchResultsGrid()
+              : _buildUnifiedEmojiList(),
+        ),
+        _buildBottomCategoryBar(catConfig),
+      ],
     );
   }
 
-  // --- UI COMPONENTS ---
+  Widget _buildUnifiedEmojiList() {
+    return CustomScrollView(
+      key: _scrollViewKey,
+      controller: _scrollController,
+      slivers: [
+        for (int i = 0; i < widget.state.categoryEmoji.length; i++) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              key: _categoryKeys[i],
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                _getCategoryName(widget.state.categoryEmoji[i].category),
+                style: ShadTheme.of(context).textTheme.h4.copyWith(
+                  color: ShadTheme.of(context).colorScheme.foreground,
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: widget.config.emojiViewConfig.columns,
+                crossAxisSpacing:
+                    widget.config.emojiViewConfig.horizontalSpacing,
+                mainAxisSpacing: widget.config.emojiViewConfig.verticalSpacing,
+              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                return _buildEmojiButton(
+                  widget.state.categoryEmoji[i].emoji[index],
+                );
+              }, childCount: widget.state.categoryEmoji[i].emoji.length),
+            ),
+          ),
+        ],
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+      ],
+    );
+  }
 
   Widget _buildSearchBar() {
     return Container(
@@ -172,7 +256,7 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 0),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0), // Fully rounded pill
+            borderRadius: BorderRadius.circular(30.0),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
@@ -199,29 +283,6 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
     );
   }
 
-  Widget _buildCategoryPageView() {
-    return PageView.builder(
-      controller: _pageController,
-      itemCount: widget.state.categoryEmoji.length,
-      onPageChanged: (index) {
-        _tabController.animateTo(index);
-      },
-      itemBuilder: (context, index) {
-        final category = widget.state.categoryEmoji[index];
-        return GridView.builder(
-          padding: const EdgeInsets.all(8),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: widget.config.emojiViewConfig.columns,
-          ),
-          itemCount: category.emoji.length,
-          itemBuilder: (context, i) {
-            return _buildEmojiButton(category.emoji[i]);
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildEmojiButton(Emoji emoji) {
     return Material(
       color: Colors.transparent,
@@ -234,7 +295,7 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
           child: Text(
             emoji.emoji,
             style: emojiTextStyle(
-              TextStyle(fontSize: 28),
+              const TextStyle(fontSize: 28),
             ), // Adjust size as needed
           ),
         ),
@@ -255,7 +316,7 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
         labelColor: catConfig.iconColorSelected,
         unselectedLabelColor: catConfig.iconColor,
         onTap: (index) {
-          _pageController.jumpToPage(index);
+          _scrollToCategory(index);
         },
         tabs: widget.state.categoryEmoji.map((cat) {
           return Tab(icon: Icon(_getIconForCategory(cat.category), size: 24));
@@ -284,6 +345,29 @@ class _StyledEmojiLayoutState extends State<_StyledEmojiLayout>
         return LucideIcons.squarePi;
       case Category.FLAGS:
         return LucideIcons.flag;
+    }
+  }
+
+  String _getCategoryName(Category category) {
+    switch (category) {
+      case Category.RECENT:
+        return 'Recent';
+      case Category.SMILEYS:
+        return 'Smileys & People';
+      case Category.ANIMALS:
+        return 'Animals & Nature';
+      case Category.FOODS:
+        return 'Food & Drink';
+      case Category.ACTIVITIES:
+        return 'Activities';
+      case Category.TRAVEL:
+        return 'Travel & Places';
+      case Category.OBJECTS:
+        return 'Objects';
+      case Category.SYMBOLS:
+        return 'Symbols';
+      case Category.FLAGS:
+        return 'Flags';
     }
   }
 }

@@ -273,6 +273,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.3"
+  dotenv:
+    dependency: "direct main"
+    description:
+      name: dotenv
+      sha256: "379e64b6fc82d3df29461d349a1796ecd2c436c480d4653f3af6872eccbc90e1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.0"
   drift:
     dependency: "direct main"
     description:
@@ -293,8 +301,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "282b537f02dc6f4dd07da57dadbc1e5f9346b531"
-      resolved-ref: "282b537f02dc6f4dd07da57dadbc1e5f9346b531"
+      ref: "85d37ad201c07b872c82d5fbd0d141c11d071ffa"
+      resolved-ref: "85d37ad201c07b872c82d5fbd0d141c11d071ffa"
       url: "https://github.com/eko-network/ecp-dart-sdk"
     source: git
     version: "0.0.1"
@@ -375,6 +383,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.2"
+  flutter_dotenv:
+    dependency: "direct main"
+    description:
+      name: flutter_dotenv
+      sha256: d4130c4a43e0b13fefc593bc3961f2cb46e30cb79e253d4a526b1b5d24ae1ce4
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.0"
   flutter_hooks:
     dependency: transitive
     description:
@@ -500,6 +516,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.3"
+  flutter_staggered_grid_view:
+    dependency: "direct main"
+    description:
+      name: flutter_staggered_grid_view
+      sha256: "19e7abb550c96fbfeb546b23f3ff356ee7c59a019a651f8f102a4ba9b7349395"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   flutter_svg:
     dependency: transitive
     description:
@@ -638,6 +662,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.9.0"
+  klipy_dart:
+    dependency: "direct main"
+    description:
+      name: klipy_dart
+      sha256: e175946111ded69374b9d13d14d7dae2738b0a4751307a28ea989311ba9ca367
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   leak_tracker:
     dependency: transitive
     description:

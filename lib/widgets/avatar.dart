@@ -17,6 +17,5 @@ class Avatar extends StatelessWidget {
           ? Text(person.preferredUsername[0])
           : null,
     );
-    ;
   }
 }
