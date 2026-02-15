@@ -23,6 +23,7 @@ class MessagesDao extends DatabaseAccessor<AppDatabase>
     required Uri from,
     required Uri to,
   }) async {
+    debugPrint("insertNewMessage called");
     String? content;
     List<Image> images = [];
 

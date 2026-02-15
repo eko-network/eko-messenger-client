@@ -97,14 +97,15 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
     if (text.isEmpty && gifs.length == 1) {
       await _dispatchMessage(gifs.first);
+    } else {
+      await _dispatchMessage(
+        ecp.Note(
+          content: text,
+          base: ecp.ObjectBase(id: _uuid.v4obj()),
+          attachments: gifs.isEmpty ? null : gifs.toList(),
+        ),
+      );
     }
-    await _dispatchMessage(
-      ecp.Note(
-        content: text,
-        base: ecp.ObjectBase(id: _uuid.v4obj()),
-        attachments: gifs.isEmpty ? null : gifs.toList(),
-      ),
-    );
   }
 
   Future<void> _dispatchMessage(ecp.ActivityPubObject object) async {
@@ -140,6 +141,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
         );
       } else if (id != null) {
         await db.messagesDao.markMessageSent(activity.object.base.id, id);
+        debugPrint("Message Send successful. id: $id");
       } else {
         debugPrint('[chat_view] Warning: send did not return id');
         await db.messagesDao.updateMessageStatusFromId(

@@ -136,6 +136,7 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
     // Only handle Create StableActivity for now
     switch (activity.activity) {
       case Create create:
+        debugPrint("Recived new create message!");
         final db = ref.read(appDatabaseProvider);
 
         final Uri otherParty;
@@ -201,6 +202,7 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
         break;
       case Delivered delivered:
         final db = ref.read(appDatabaseProvider);
+        debugPrint("Recived Delivered for ${delivered.object}");
 
         await db.messagesDao.updateMessageStatusFromEnvelope(
           delivered.object,

@@ -1,3 +1,5 @@
+import 'dart:math' show max, min;
+
 import 'package:eko_messenger/database/database.dart';
 import 'package:eko_messenger/database/models/message_with_attachments.dart';
 import 'package:eko_messenger/database/type_converters.dart';
@@ -181,7 +183,7 @@ class MessageWidget extends StatelessWidget {
           Container(
             constraints: BoxConstraints(
               maxWidth: messageWithAttachments.attachments.isNotEmpty
-                  ? 400
+                  ? min(400, MediaQuery.of(context).size.width * 0.75)
                   : MediaQuery.of(context).size.width * 0.75,
             ),
             clipBehavior: Clip.hardEdge,
