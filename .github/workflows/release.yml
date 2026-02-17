@@ -27,17 +27,22 @@ jobs:
       - name: Decode Keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
-      - name: Build Signed APK
+      - name: Remove NotoEmoji
+        run: nix run nixpkgs#yq-go -- eval -i 'del(.flutter.fonts[] | select(.family == "NotoEmoji"))' pubspec.yaml
+      - name: Build Signed APK and App Bundle
         run: |
           nix develop .#default --command flutter build apk --release \
           --dart-define KLIPY_API_KEY=${{ secrets.KLIPY_API_KEY }}
           nix develop .#default --command flutter build appbundle --release \
           --dart-define KLIPY_API_KEY=${{ secrets.KLIPY_API_KEY }}
         env:
-          ANDROID_KEYSTORE_PATH: android/app/upload-keystore.jks
+          ANDROID_KEYSTORE_PATH: upload-keystore.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      - name: Reset Repo
+        run: |
+          git reset --hard
       - name: Install Cider
         run: dart pub global activate cider
       - name: Bump Version

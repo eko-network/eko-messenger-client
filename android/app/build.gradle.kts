@@ -33,13 +33,6 @@ val setKeyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: keystoreProperties["keyA
 val setKeyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: keystoreProperties["keyPassword"] as String?
 val hasSigningConfig = setKeystorePath != null && setKeystorePassword != null && setKeyAlias != null && setKeyPassword != null
 
-// println("Signing config check:")
-// println("  keystorePath: ${if (keystorePath != null) "SET" else "NOT SET"}")
-// println("  keystorePassword: ${if (keystorePassword != null) "SET" else "NOT SET"}")
-// println("  keyAlias: ${if (keyAlias != null) "SET" else "NOT SET"}")
-// println("  keyPassword: ${if (keyPassword != null) "SET" else "NOT SET"}")
-// println("  hasSigningConfig: $hasSigningConfig")
-
 android {
     namespace = "com.eko.eko_messenger"
     compileSdk = flutter.compileSdkVersion
