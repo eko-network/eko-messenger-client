@@ -7,8 +7,8 @@ pkgs.stdenv.mkDerivation {
   version = "0.0.9+9";
 
   src = pkgs.fetchurl {
-    url = "https://github.com/eko-network/eko-messenger-client/releases/download/0.0.9%2B9/linux-release.tar.xz";
-    sha256 = "sha256-NoAB7VjG8nQOX+O0HM4oRdAglDQcsxan2TB/aiSo4MY=";
+    url = "https://github.com/eko-network/eko-messenger-client/releases/download/0.0.9+9/linux-release.tar.xz";
+    sha256 = "sha256-ujdrURsqxHAzses1ZJQTKrFVBNDImuwjRTRBVk4Smb0=";
   };
 
   sourceRoot = ".";
