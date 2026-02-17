@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
 
       - name: Setup nix
         uses: cachix/install-nix-action@v31
@@ -62,23 +63,35 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update Nix Package
+        run: |
+          RELEASE_TAG="${{ github.ref_name }}"
+          
+          TARBALL_URL="https://github.com/${{ github.repository }}/releases/download/${RELEASE_TAG}/linux-release.tar.xz"
+          
+          SHA256=$(nix-prefetch-url --type sha256 "$TARBALL_URL" 2>&1 | tail -n1)
+          SHA256_HASH=$(nix hash convert --hash-algo sha256 --to "sri" "$SHA256")
+          
+          sed -i "s|version = \".*\";|version = \"${RELEASE_TAG}\";|" nix/package-bin.nix
+          sed -i "s|download/[^/]*/linux-release.tar.xz|download/${RELEASE_TAG}/linux-release.tar.xz|" nix/package-bin.nix
+          sed -i "s|sha256 = \".*\";|sha256 = \"${SHA256_HASH}\";|" nix/package-bin.nix
+          
+          git add nix/package-bin.nix
+
       - name: Bump Version and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git reset --hard
+          # Revert the NotoEmoji removal from pubspec.yaml
+          git checkout pubspec.yaml
 
           nix develop .#default --command bash -c "
             dart pub global activate cider
             export PATH=\"\$PATH:\$HOME/.pub-cache/bin\"
-            cider bump patch
-            cider bump build
+            cider bump patch --bump-build
           "
           
-          ~/.pub-cache/bin/cider bump patch
-          ~/.pub-cache/bin/cider bump build
-          
-          git add pubspec.yaml
-          git commit -m "chore: bump version"
+          git add pubspec.yaml nix/package-bin.nix
+          git commit -m "chore: bump version and update nix package"
           git push

@@ -22,6 +22,9 @@
     in {
       devShells.default = import ./nix/devshell.nix {pkgs = devPkgs;};
 
-      packages.default = pkgs.callPackage ./nix/package.nix {};
+      packages = {
+        source = pkgs.callPackage ./nix/package.nix {};
+        default = pkgs.callPackage ./nix/package-bin.nix {};
+      };
     });
 }
