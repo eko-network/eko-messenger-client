@@ -1,13 +1,19 @@
 name: build
 on:
-  workflow_call:
-  push:
+  release:
+    types: [created]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Setup nix
         uses: cachix/install-nix-action@v31
         with:
@@ -15,20 +21,25 @@ jobs:
             experimental-features = nix-command flakes
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-unstable
+
       - name: Build Linux
         run: |
           nix develop .#default --command flutter build linux --release \
           --dart-define KLIPY_API_KEY=${{ secrets.KLIPY_API_KEY }}
+
       - name: Package Linux Build (Tarball)
         run: |
           cd build/linux/x64/release/bundle/
-          tar -cJf ../../../../linux-release.tar.xz .
+          tar -cJf ../../../../../linux-release.tar.xz .
           cd -
+
       - name: Decode Keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+
       - name: Remove NotoEmoji
         run: nix run nixpkgs#yq-go -- eval -i 'del(.flutter.fonts[] | select(.family == "NotoEmoji"))' pubspec.yaml
+
       - name: Build Signed APK and App Bundle
         run: |
           nix develop .#default --command flutter build apk --release \
@@ -40,12 +51,34 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-      - name: Reset Repo
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            linux-release.tar.xz
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump Version and Push
         run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
           git reset --hard
-      - name: Install Cider
-        run: dart pub global activate cider
-      - name: Bump Version
-        run: |
+
+          nix develop .#default --command bash -c "
+            dart pub global activate cider
+            export PATH=\"\$PATH:\$HOME/.pub-cache/bin\"
+            cider bump patch
+            cider bump build
+          "
+          
           ~/.pub-cache/bin/cider bump patch
           ~/.pub-cache/bin/cider bump build
+          
+          git add pubspec.yaml
+          git commit -m "chore: bump version"
+          git push
