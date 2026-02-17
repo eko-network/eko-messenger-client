@@ -1,10 +1,7 @@
-name: build-flake
+name: build
 on:
   workflow_call:
   push:
-    branches:
-      - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,11 +15,6 @@ jobs:
             experimental-features = nix-command flakes
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-unstable
-      - uses: cachix/cachix-action@v16
-        with:
-          name: eko-network
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - name: Build nix flake
-        run: nix build .
-      - name: Check nix flake
-        run: nix flake check --all-systems
+      - name: Build Flutter
+        run: |
+          nix develop .#default --command flutter build linux --dart-define KLIPY_API_KEY=${{ secrets.KLIPY_API_KEY }}
