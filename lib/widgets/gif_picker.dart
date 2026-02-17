@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:klipy_dart/klipy_dart.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
-final klipyClient = KlipyClient(apiKey: dotenv.env['KLIPY_API_KEY']!);
-
 class GifPicker extends StatefulWidget {
   final Function(KlipyResultObject) onGifSelected;
+  final KlipyClient client;
 
-  const GifPicker({super.key, required this.onGifSelected});
+  const GifPicker({
+    super.key,
+    required this.onGifSelected,
+    required this.client,
+  });
 
   @override
   State<GifPicker> createState() => _GifPickerState();
@@ -65,7 +67,7 @@ class _GifPickerState extends State<GifPicker> {
     });
 
     try {
-      final response = await klipyClient.featured();
+      final response = await widget.client.featured();
       if (mounted) {
         setState(() {
           _gifs = response?.results ?? [];
@@ -100,7 +102,7 @@ class _GifPickerState extends State<GifPicker> {
     });
 
     try {
-      final response = await klipyClient.search(query);
+      final response = await widget.client.search(query);
       if (mounted) {
         setState(() {
           _gifs = response?.results ?? [];
@@ -128,8 +130,8 @@ class _GifPickerState extends State<GifPicker> {
 
     try {
       final response = _currentQuery.isEmpty
-          ? await klipyClient.featured(pos: _nextPos)
-          : await klipyClient.search(_currentQuery, pos: _nextPos);
+          ? await widget.client.featured(pos: _nextPos)
+          : await widget.client.search(_currentQuery, pos: _nextPos);
 
       if (mounted) {
         setState(() {

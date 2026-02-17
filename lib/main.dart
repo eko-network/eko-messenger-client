@@ -1,4 +1,3 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/device_name_provider.dart';
 import 'package:eko_messenger/providers/messages.dart';
@@ -20,7 +19,6 @@ ShadTextTheme mergeEmojiFallback(ShadTextTheme original, String emojiFont) {
 }
 
 void main(List<String> args) async {
-  await dotenv.load();
   WidgetsFlutterBinding.ensureInitialized();
   Args.init(args);
   open.overrideFor(OperatingSystem.android, openCipherOnAndroid);

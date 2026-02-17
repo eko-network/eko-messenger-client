@@ -21,11 +21,20 @@ class MediaPicker extends StatefulWidget {
 class _MediaPickerState extends State<MediaPicker>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late final KlipyClient? klipyClient;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
+    const apiKey = String.fromEnvironment('KLIPY_API_KEY');
+    if (apiKey.isNotEmpty) {
+      klipyClient = KlipyClient(apiKey: apiKey);
+    } else {
+      klipyClient = null;
+    }
+    _tabController = klipyClient == null
+        ? TabController(length: 1, vsync: this, initialIndex: 0)
+        : TabController(length: 2, vsync: this, initialIndex: 1);
   }
 
   @override
@@ -54,9 +63,9 @@ class _MediaPickerState extends State<MediaPicker>
             ).colorScheme.mutedForeground,
             indicatorColor: ShadTheme.of(context).colorScheme.primary,
             dividerColor: ShadTheme.of(context).colorScheme.border,
-            tabs: const [
+            tabs: [
               Tab(text: "Emoji"),
-              Tab(text: "GIFs"),
+              if (klipyClient != null) Tab(text: "GIFs"),
             ],
           ),
           Expanded(
@@ -64,7 +73,11 @@ class _MediaPickerState extends State<MediaPicker>
               controller: _tabController,
               children: [
                 StyledEmojiPicker(textController: widget.textController),
-                GifPicker(onGifSelected: widget.onGifSelected),
+                if (klipyClient != null)
+                  GifPicker(
+                    onGifSelected: widget.onGifSelected,
+                    client: klipyClient!,
+                  ),
               ],
             ),
           ),

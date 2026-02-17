@@ -27,6 +27,12 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val setKeystorePath =  System.getenv("ANDROID_KEYSTORE_PATH") ?: keystoreProperties["storeFile"] as String?
+val setKeystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: keystoreProperties["storePassword"] as String?
+val setKeyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: keystoreProperties["keyAlias"] as String?
+val setKeyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: keystoreProperties["keyPassword"] as String?
+val hasSigningConfig = setKeystorePath != null && setKeystorePassword != null && setKeyAlias != null && setKeyPassword != null
+
 android {
     namespace = "com.eko.eko_messenger"
     compileSdk = flutter.compileSdkVersion
@@ -50,24 +56,24 @@ android {
         versionName = flutter.versionName
     }
 
-		signingConfigs {
-			if (keystorePropertiesFile.exists()) {
+	signingConfigs {
+		if (hasSigningConfig) {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String
+            keyAlias = setKeyAlias
+            keyPassword = setKeyPassword
+            storeFile = setKeystorePath?.let { file(it) }
+            storePassword = setKeystorePassword
         }
-			}
+		}
     }
 
     buildTypes {
         release {
-            if (keystorePropertiesFile.exists()) {
+            if (hasSigningConfig) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
-				debug {
+		debug {
             applicationIdSuffix = ".debug" 
         }
     }
