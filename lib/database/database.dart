@@ -117,3 +117,19 @@ LazyDatabase _openConnection() {
     return NativeDatabase.opened(rawDb);
   });
 }
+
+/// Clear the database encryption key from secure storage
+Future<void> clearDatabaseEncryptionKey() async {
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
+  final key = '${c.appInstanceId}_db_key';
+  await storage.delete(key: key);
+}
+
+/// Delete the database file from disk
+Future<void> deleteDatabaseFile() async {
+  final dbFolder = await getApplicationSupportDirectory();
+  final file = File(p.join(dbFolder.path, '${c.appInstanceId}.db'));
+  if (await file.exists()) {
+    await file.delete();
+  }
+}

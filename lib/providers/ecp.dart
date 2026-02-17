@@ -7,6 +7,12 @@ part '../generated/providers/ecp.g.dart';
 @Riverpod(keepAlive: true)
 EcpClient ecp(Ref ref) {
   final auth = ref.watch(authProvider);
-  assert(auth.ecpClient != null, "EcpClient used before authentication");
-  return auth.ecpClient!;
+  final client = auth.ecpClient;
+
+  // If no client is available, throw an error
+  if (client == null) {
+    throw StateError("EcpClient used before authentication or after logout");
+  }
+
+  return client;
 }

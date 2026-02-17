@@ -39,14 +39,15 @@ class DriftStorage implements Storage {
 
   @override
   Future<void> clear() async {
-    await _db.delete(_db.capabilities).go();
-    await _db.delete(_db.preKeys).go();
-    await _db.delete(_db.signedPreKeys).go();
-    await _db.delete(_db.identities).go();
-    await _db.delete(_db.localIdentity).go();
-    await _db.delete(_db.sessions).go();
-    // Delete child table before parent table to avoid foreign key constraint
-    await _db.delete(_db.userDevices).go();
-    await _db.delete(_db.users).go();
+    await Future.wait([
+      _db.delete(_db.capabilities).go(),
+      _db.delete(_db.preKeys).go(),
+      _db.delete(_db.signedPreKeys).go(),
+      _db.delete(_db.identities).go(),
+      _db.delete(_db.localIdentity).go(),
+      _db.delete(_db.sessions).go(),
+    _db.delete(_db.userDevices).go(),
+    _db.delete(_db.users).go(),
+    ]);
   }
 }

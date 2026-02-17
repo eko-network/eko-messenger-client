@@ -3,13 +3,9 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:ecp/auth.dart';
 import 'package:ecp/ecp.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:eko_messenger/utils/constants.dart' as c;
 import 'package:eko_messenger/database/database.dart';
 
 class SecureAuthStore implements AuthStorage {
-  final _storage = const FlutterSecureStorage();
-  final _dbPasswordKey = '${c.appInstanceId}_db_password';
   final AppDatabase _db;
 
   SecureAuthStore(this._db);
@@ -52,19 +48,6 @@ class SecureAuthStore implements AuthStorage {
   @override
   Future<void> clear() async {
     await _db.delete(_db.authInfoTable).go();
-  }
-
-  // Database password management
-  Future<String?> getDatabasePassword() async {
-    return await _storage.read(key: _dbPasswordKey);
-  }
-
-  Future<void> saveDatabasePassword(String password) async {
-    await _storage.write(key: _dbPasswordKey, value: password);
-  }
-
-  Future<void> clearDatabasePassword() async {
-    await _storage.delete(key: _dbPasswordKey);
   }
 
   @override

@@ -1627,7 +1627,7 @@ class $UserDevicesTable extends UserDevices
         type: DriftSqlType.string,
         requiredDuringInsert: true,
         defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES users (id)',
+          'REFERENCES users (id) ON DELETE CASCADE',
         ),
       ).withConverter<Uri>($UserDevicesTable.$converteruserId);
   @override
@@ -3871,6 +3871,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('user_devices', kind: UpdateKind.delete)],
+    ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'messages',

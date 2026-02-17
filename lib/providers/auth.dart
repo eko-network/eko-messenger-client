@@ -14,16 +14,15 @@ import 'package:ecp/ecp.dart';
 part '../generated/providers/auth.g.dart';
 
 class AuthNotifier extends ChangeNotifier {
-  AuthNotifier(this._auth, this._authStore, this._db, this._ref);
+  AuthNotifier(this._auth, this._db, this._ref);
 
   final Auth _auth;
-  final SecureAuthStore _authStore;
   final AppDatabase _db;
   final Ref _ref;
   EcpClient? _ecpClient;
   bool _isLoggingOut = false;
 
-  bool get isAuthenticated => _auth.isAuthenticated;
+  bool get isAuthenticated => _auth.isAuthenticated && _ecpClient != null;
   EcpClient? get ecpClient => _ecpClient;
 
   Future<void> login({
@@ -31,29 +30,33 @@ class AuthNotifier extends ChangeNotifier {
     required String password,
     required Uri url,
   }) async {
+    // Wait for any ongoing logout to complete
+    while (_isLoggingOut) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+
     await _auth.login(email: email, password: password, url: url);
+
     await _initializeEcpClient();
     await _initializeMessagingIfSupported();
+
     notifyListeners();
   }
 
   Future<void> logout() async {
     if (_isLoggingOut) return;
     _isLoggingOut = true;
-    
+
     try {
       _ecpClient = null;
-      
-      // Clear app-specific data not handled by auth.logout()
-      await _db.delete(_db.messages).go();
-      await _db.delete(_db.conversations).go();
-      await _db.delete(_db.contacts).go();
-      
-      await _auth.logout();
-      
-      await _authStore.clearDatabasePassword();
-      
       notifyListeners();
+      await Future.wait([
+        _db.delete(_db.messages).go(),
+        _db.delete(_db.conversations).go(),
+        _db.delete(_db.contacts).go(),
+      ]);
+      await _auth.logout();
+      await clearDatabaseEncryptionKey();
     } finally {
       _isLoggingOut = false;
     }
@@ -112,9 +115,9 @@ AuthNotifier auth(Ref ref) {
   final deviceName = ref.watch(deviceNameProvider);
   final db = ref.read(appDatabaseProvider);
   final authStore = SecureAuthStore(db);
-  
+
   late final AuthNotifier authNotifier;
-  
+
   authNotifier = AuthNotifier(
     Auth(
       authStore,
@@ -125,10 +128,9 @@ AuthNotifier auth(Ref ref) {
         authNotifier.logout();
       },
     ),
-    authStore,
     db,
     ref,
   );
-  
+
   return authNotifier;
 }
