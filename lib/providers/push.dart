@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/ecp.dart';
 import 'package:eko_messenger/providers/messages.dart';
 import 'package:flutter/foundation.dart';
@@ -37,6 +38,12 @@ class Push extends _$Push {
       debugPrint('[Messaging Provider] New endpoint received: $endpoint');
 
       try {
+        // Check if user is still authenticated before accessing ECP client
+        final authNotifier = ref.read(authProvider);
+        if (!authNotifier.isAuthenticated) {
+          return;
+        }
+
         // Only send to server if we have encryption keys (UnifiedPush)
         if (endpoint.pubKey != null && endpoint.auth != null) {
           await ref
@@ -65,6 +72,14 @@ class Push extends _$Push {
     service.onMessageReceived = (message) async {
       debugPrint('[Messaging Provider] Message: $message');
       try {
+        final authNotifier = ref.read(authProvider);
+        if (!authNotifier.isAuthenticated) {
+          debugPrint(
+            '[Messaging Provider] User not authenticated, skipping message processing',
+          );
+          return;
+        }
+
         final activities = await ref.read(ecpProvider).getMessages();
         final messagePolling = ref.read(messagePollingProvider.notifier);
 

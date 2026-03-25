@@ -11,6 +11,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:eko_messenger/providers/auth.dart';
 import 'package:drift/drift.dart';
 import 'package:eko_messenger/database/database.dart';
+import 'package:eko_messenger/database/models/message_with_attachments.dart';
 
 part '../generated/providers/messages.g.dart';
 
@@ -213,4 +214,22 @@ class MessagePolling extends _$MessagePolling with WidgetsBindingObserver {
         debugPrint('Skipping Unknown activity: ${activity.activity.type}}');
     }
   }
+}
+
+@riverpod
+Stream<List<MessageWithAttachments>> messageStream(
+  Ref ref,
+  Uri contactId,
+  Uri actorId,
+) {
+  final auth = ref.watch(authProvider);
+  if (!auth.isAuthenticated) {
+    return Stream.value([]);
+  }
+
+  final db = ref.watch(appDatabaseProvider);
+  return db.messagesDao.watchMessagesWithAttachmentForConversation(
+    contactId,
+    actorId,
+  );
 }

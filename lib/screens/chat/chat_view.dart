@@ -1,12 +1,11 @@
 import 'dart:io';
 import 'package:ecp/ecp.dart' as ecp;
 import 'package:eko_messenger/database/daos/conversations_dao.dart';
-import 'package:eko_messenger/database/database.dart';
-import 'package:eko_messenger/database/models/message_with_attachments.dart';
 import 'package:eko_messenger/database/type_converters.dart';
 import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/database.dart';
 import 'package:eko_messenger/providers/ecp.dart';
+import 'package:eko_messenger/providers/messages.dart';
 import 'package:eko_messenger/utils/constants.dart' as c;
 import 'package:eko_messenger/utils/emoji_text_style.dart';
 import 'package:eko_messenger/widgets/avatar.dart';
@@ -41,10 +40,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
   final ShadPopoverController _popoverController = ShadPopoverController();
   final FocusNode _focusNode = FocusNode();
   final _uuid = Uuid();
-  Stream<List<MessageWithAttachments>>? _messagesStream;
-  Uri? _lastActorId;
-  Uri? _lastContactId;
-  AppDatabase? _lastDb;
   bool _showMediaPicker = false;
   Map<Uri, ecp.Image> _selectedGifs = {};
 
@@ -323,7 +318,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    final db = ref.watch(appDatabaseProvider);
     final authInfo = ref.watch(authProvider).info;
 
     if (authInfo == null) {
@@ -344,16 +338,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
     final actorId = authInfo.actor.id;
     final contactId = widget.conversation.contact.id;
 
-    if (_messagesStream == null ||
-        _lastActorId != actorId ||
-        _lastContactId != contactId ||
-        _lastDb != db) {
-      _lastActorId = actorId;
-      _lastContactId = contactId;
-      _lastDb = db;
-      _messagesStream = db.messagesDao
-          .watchMessagesWithAttachmentForConversation(contactId, actorId);
-    }
+    final messagesAsync = ref.watch(messageStreamProvider(contactId, actorId));
 
     return Scaffold(
       appBar: AppBar(
@@ -380,14 +365,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<MessageWithAttachments>>(
-              stream: _messagesStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            child: messagesAsync.when(
+              data: (messages) {
+                if (messages.isEmpty) {
                   return Center(
                     child: Text(
                       'No messages yet. Start the conversation!',
@@ -396,7 +376,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   );
                 }
 
-                final messages = snapshot.data!;
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   reverse: true,
@@ -456,6 +435,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   },
                 );
               },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) =>
+                  Center(child: Text('Error loading messages: $error')),
             ),
           ),
           SafeArea(

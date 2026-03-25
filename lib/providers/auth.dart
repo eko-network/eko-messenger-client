@@ -14,10 +14,9 @@ import 'package:ecp/ecp.dart';
 part '../generated/providers/auth.g.dart';
 
 class AuthNotifier extends ChangeNotifier {
-  AuthNotifier(this._auth, this._db, this._ref);
+  AuthNotifier(this._auth, this._ref);
 
   final Auth _auth;
-  final AppDatabase _db;
   final Ref _ref;
   EcpClient? _ecpClient;
   bool _isLoggingOut = false;
@@ -50,13 +49,31 @@ class AuthNotifier extends ChangeNotifier {
     try {
       _ecpClient = null;
       notifyListeners();
+      final db = _ref.read(appDatabaseProvider);
+
       await Future.wait([
-        _db.delete(_db.messages).go(),
-        _db.delete(_db.conversations).go(),
-        _db.delete(_db.contacts).go(),
+        db.delete(db.messages).go(),
+        db.delete(db.media).go(),
+        db.delete(db.conversations).go(),
+        db.delete(db.contacts).go(),
       ]);
+
       await _auth.logout();
-      await clearDatabaseEncryptionKey();
+      await db.close();
+      await Future.wait([clearDatabaseEncryptionKey(), deleteDatabaseFile()]);
+      _ref.invalidate(appDatabaseProvider);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      Future.microtask(() => _ref.invalidateSelf());
+    } catch (e, stackTrace) {
+      debugPrint('Error during logout: $e');
+      debugPrint('Stack trace: $stackTrace');
+      try {
+        await (clearDatabaseEncryptionKey(), deleteDatabaseFile()).wait;
+        _ref.invalidate(appDatabaseProvider);
+      } catch (cleanupError) {
+        debugPrint('Error during cleanup fallback: $cleanupError');
+      }
     } finally {
       _isLoggingOut = false;
     }
@@ -128,7 +145,6 @@ AuthNotifier auth(Ref ref) {
         authNotifier.logout();
       },
     ),
-    db,
     ref,
   );
 

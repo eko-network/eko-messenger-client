@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:eko_messenger/database/daos/conversations_dao.dart';
 import 'package:eko_messenger/database/database.dart';
+import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/database.dart';
 import 'package:eko_messenger/providers/ecp.dart';
 import 'package:eko_messenger/screens/chat/adaptive_chat_layout.dart';
@@ -78,6 +79,12 @@ class _ConversationListState extends ConsumerState<ConversationList> {
   }
 
   Future<void> onSearchGetPressed() async {
+    final auth = ref.read(authProvider);
+    if (!auth.isAuthenticated) {
+      debugPrint('[onSearchGetPressed] User not authenticated, aborting');
+      return;
+    }
+
     showDialog<void>(
       context: context,
       barrierDismissible: false,

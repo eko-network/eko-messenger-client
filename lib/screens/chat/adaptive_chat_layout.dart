@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:eko_messenger/database/daos/conversations_dao.dart';
+import 'package:eko_messenger/providers/auth.dart';
 import 'package:eko_messenger/providers/database.dart';
 import 'package:eko_messenger/screens/chat/chat_view.dart';
 import 'package:eko_messenger/screens/chat/conversation_list.dart';
@@ -11,12 +12,16 @@ import 'package:go_router/go_router.dart';
 
 const double kConversationAvatarRadius = 20.0;
 
-final conversationsProvider = StreamProvider<List<ConversationWithContact>>((
-  ref,
-) {
-  final db = ref.watch(appDatabaseProvider);
-  return db.conversationsDao.watchConversationsWithContact();
-});
+final conversationsProvider =
+    StreamProvider.autoDispose<List<ConversationWithContact>>((ref) {
+      final auth = ref.watch(authProvider);
+      if (!auth.isAuthenticated) {
+        return Stream.value([]);
+      }
+
+      final db = ref.watch(appDatabaseProvider);
+      return db.conversationsDao.watchConversationsWithContact();
+    });
 
 class AdaptiveChat extends ConsumerWidget {
   final int? selectedConversationId;
